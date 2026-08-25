@@ -41,11 +41,16 @@ codeunit 10035488 "CE LLM Chat Setup ori"
 
     [NonDebuggable]
     internal procedure SetApiKey(ApiKey: Text)
+    var
+        ProviderSetup: Record "CE LLM Provider Setup ori";
     begin
-        if ApiKey = '' then
-            IsolatedStorage.Delete(ApiKeyStorageKeyTok, DataScope::User)
+        if ResolveProvider(ProviderSetup) then
+            ProviderSetup.SetUserApiKey(ApiKey)
         else
-            IsolatedStorage.Set(ApiKeyStorageKeyTok, ApiKey, DataScope::User);
+            if ApiKey = '' then
+                IsolatedStorage.Delete(ApiKeyStorageKeyTok, DataScope::User)
+            else
+                IsolatedStorage.Set(ApiKeyStorageKeyTok, ApiKey, DataScope::User);
     end;
 
     [NonDebuggable]
@@ -115,6 +120,7 @@ codeunit 10035488 "CE LLM Chat Setup ori"
     [NonDebuggable]
     internal procedure BuildConfigJson(): Text
     var
+        ProviderSetup: Record "CE LLM Provider Setup ori";
         CEUserSetup: Record "CE User Setup ori";
         LLMChatRole: Record "MCP Chat Role ori";
         CompanyRec: Record Company;
@@ -125,7 +131,11 @@ codeunit 10035488 "CE LLM Chat Setup ori"
         ConfigText: Text;
     begin
         CompanyRec.Get(CompanyName());
-        ApiKey := GetApiKey();
+
+        if ResolveProvider(ProviderSetup) then
+            ApiKey := ProviderSetup.GetApiKey()
+        else
+            ApiKey := GetApiKey();
 
         ConfigObject.Add('apiKey', ApiKey);
         ConfigObject.Add('mode', 'local');

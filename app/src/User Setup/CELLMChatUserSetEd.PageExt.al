@@ -36,31 +36,42 @@ pageextension 10035486 "CE LLM Chat User SetEd ori" extends "CE User Setup Edito
     {
         addlast(Processing)
         {
-            action(ori_ClearApiKey)
+            action(ori_ClearLLMApiKey)
             {
                 ApplicationArea = All;
-                Caption = 'Clear API Key', Comment = 'is-IS=Hreinsa API-lykil';
-                ToolTip = 'Removes the stored LLM API key for this user.', Comment = 'is-IS=Fjarlægir vistaðan LLM API-lykil fyrir þennan notanda.';
+                Caption = 'Clear LLM API Key', Comment = 'is-IS=Hreinsa LLM API-lykil';
+                ToolTip = 'Removes the stored LLM API key for the selected provider.', Comment = 'is-IS=Fjarlægir vistaðan LLM API-lykil fyrir valda veitu.';
                 Image = DeleteQtyToHandle;
 
                 trigger OnAction()
+                var
+                    ProviderSetup: Record "CE LLM Provider Setup ori";
                 begin
-                    LLMChatSetup.ClearApiKey();
-                    HasApiKeyValue := false;
-                    CurrPage.Update(false);
-                    Message(ApiKeyClearedMsg);
+                    if LLMChatSetup.ResolveProvider(ProviderSetup) then begin
+                        ProviderSetup.SetUserApiKey('');
+                        HasApiKeyValue := false;
+                        CurrPage.Update(false);
+                        Message(ApiKeyClearedMsg, ProviderSetup.Name);
+                    end else
+                        Message(NoProviderMsg);
                 end;
             }
         }
     }
 
     trigger OnAfterGetCurrRecord()
+    var
+        ProviderSetup: Record "CE LLM Provider Setup ori";
     begin
-        HasApiKeyValue := LLMChatSetup.HasApiKey();
+        if LLMChatSetup.ResolveProvider(ProviderSetup) then
+            HasApiKeyValue := ProviderSetup.HasApiKey()
+        else
+            HasApiKeyValue := false;
     end;
 
     var
         LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
         HasApiKeyValue: Boolean;
-        ApiKeyClearedMsg: Label 'API key cleared.', Comment = 'is-IS=API-lykill hreinsaður.';
+        ApiKeyClearedMsg: Label 'LLM API key cleared for %1.', Comment = '%1 = provider name, is-IS=LLM API-lykill hreinsaður fyrir %1.';
+        NoProviderMsg: Label 'No LLM provider configured. Set a provider on this user or in Cloud Events Setup.', Comment = 'is-IS=Engin LLM veita stillt. Stilltu veitu á þessum notanda eða í Uppsetningu atburða í skýinu.';
 }

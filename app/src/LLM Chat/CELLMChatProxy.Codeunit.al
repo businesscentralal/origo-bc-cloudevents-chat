@@ -17,7 +17,7 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
     [NonDebuggable]
     internal procedure SendChatMessage(PayloadJson: Text): Text
     var
-        CloudEventsSetup: Record "Cloud Events Setup ori";
+        ProviderSetup: Record "CE LLM Provider Setup ori";
         LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
         ApiClient: Codeunit "CE LLM API Client ori";
         PayloadObject: JsonObject;
@@ -46,13 +46,16 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
         if not PayloadObject.ReadFrom(PayloadJson) then
             exit(BuildErrorResponse('Invalid payload JSON.'));
 
-        ApiKey := LLMChatSetup.GetApiKey();
+        if not LLMChatSetup.ResolveProvider(ProviderSetup) then
+            exit(BuildErrorResponse('No LLM provider configured.'));
+
+        ApiKey := ProviderSetup.GetApiKey();
         if ApiKey = '' then
             exit(BuildErrorResponse('API key not configured.'));
 
         Model := GetTextProperty(PayloadObject, 'model');
         if Model = '' then
-            Model := GetDefaultModel();
+            Model := ProviderSetup.ResolveModel('');
 
         SystemPrompt := BuildSystemPrompt(PayloadObject);
         ParseMessages(PayloadObject, Messages);
@@ -66,12 +69,12 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
         for Iteration := 1 to MaxIterations do begin
             Clear(RequestBody);
             RequestBody.Add('model', Model);
-            RequestBody.Add('max_tokens', CloudEventsSetup.GetLLMMaxTokens());
+            RequestBody.Add('max_tokens', ProviderSetup.GetMaxTokens());
             RequestBody.Add('messages', Messages);
             if OpenAITools.Count() > 0 then
                 RequestBody.Add('tools', OpenAITools);
 
-            if not TrySendToLLM(ApiClient, RequestBody, ApiKey, Response) then begin
+            if not TrySendToLLM(ApiClient, ProviderSetup, RequestBody, ApiKey, Response) then begin
                 ApiClient.LogLastRequest();
                 exit(BuildErrorResponse(GetLastErrorText()));
             end;
@@ -188,9 +191,9 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
 
     [TryFunction]
     [NonDebuggable]
-    local procedure TrySendToLLM(var ApiClient: Codeunit "CE LLM API Client ori"; RequestBody: JsonObject; ApiKey: Text; var Response: JsonObject)
+    local procedure TrySendToLLM(var ApiClient: Codeunit "CE LLM API Client ori"; var ProviderSetup: Record "CE LLM Provider Setup ori"; RequestBody: JsonObject; ApiKey: Text; var Response: JsonObject)
     begin
-        Response := ApiClient.SendChatCompletion(RequestBody, ApiKey);
+        Response := ApiClient.SendForProvider(ProviderSetup, RequestBody, ApiKey);
     end;
 
     local procedure ParseMessages(PayloadObject: JsonObject; var Messages: JsonArray)
@@ -276,13 +279,6 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
     begin
         ErrorObject.Add('error', ErrorMessage);
         ErrorObject.WriteTo(ResponseJson);
-    end;
-
-    local procedure GetDefaultModel(): Text
-    var
-        CloudEventsSetup: Record "Cloud Events Setup ori";
-    begin
-        exit(CloudEventsSetup.GetLLMDefaultModel());
     end;
 
     local procedure GetTextProperty(Source: JsonObject; PropertyName: Text): Text

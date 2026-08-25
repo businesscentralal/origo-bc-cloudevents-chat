@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "coverageData": [],
+  "testStatus": {
+    "95902|ValidateModel_EmptyValue_NoError": 0,
+    "95902|ValidateModel_ApiUnreachable_AllowsAnyValue": 0,
+    "95905|Complete_ReturnsMockedText": 0,
+    "95905|Complete_ApiError_Raised": 0,
+    "95905|AiDecisionStep_ReturnsApprove": 0,
+    "95905|AiSummaryStep_ReturnsSentence": 0,
+    "95905|SendChatCompletion_ParsesResponseObject": 0,
+    "95905|ListModels_ReturnsModelArray": 0,
+    "95905|ListModels_ApiError_Raised": 0
+  }
+}

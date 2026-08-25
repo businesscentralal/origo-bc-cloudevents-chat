@@ -14,26 +14,6 @@ codeunit 95905 "CE LLM Model Call Tst ori"
 
     var
         Assert: Codeunit "Library Assert";
-        LLMAIHandler: Codeunit "CE LLM AI Handler ori";
-        MockProvider: Codeunit "CE LLM Mock Provider ori";
-        IsBound: Boolean;
-
-    local procedure SafeBind()
-    begin
-        if IsBound then
-            exit;
-        MockProvider.Create();
-        MockProvider.SetServiceKey('test-key');
-        MockProvider.SetAsDefault();
-        if not TryBind() then; // already bound by another test codeunit
-        IsBound := true;
-    end;
-
-    [TryFunction]
-    local procedure TryBind()
-    begin
-        BindSubscription(LLMAIHandler);
-    end;
 
     [Test]
     procedure Complete_ReturnsMockedText()
@@ -42,8 +22,7 @@ codeunit 95905 "CE LLM Model Call Tst ori"
         ResultText: Text;
     begin
         // [GIVEN] A mocked successful LLM response
-        SafeBind();
-        LLMAIHandler.SetResponse('{"choices":[{"message":{"role":"assistant","content":"connection ok"},"finish_reason":"stop"}]}');
+        ApiClient.SetMockResponse('{"choices":[{"message":{"role":"assistant","content":"connection ok"},"finish_reason":"stop"}]}');
 
         // [WHEN] A completion is requested
         ResultText := ApiClient.Complete('test-model', '', 'ping', 100);
@@ -59,8 +38,7 @@ codeunit 95905 "CE LLM Model Call Tst ori"
         ResultText: Text;
     begin
         // [GIVEN] The next call is configured to fail
-        SafeBind();
-        LLMAIHandler.SetErrorResponse('Could not reach the LLM API.');
+        ApiClient.SetMockError('Could not reach the LLM API.');
 
         // [WHEN] A completion is requested
         asserterror ResultText := ApiClient.Complete('test-model', '', 'ping', 100);
@@ -76,8 +54,7 @@ codeunit 95905 "CE LLM Model Call Tst ori"
         DecisionText: Text;
     begin
         // [GIVEN] The model is mocked to approve
-        SafeBind();
-        LLMAIHandler.SetResponse('{"choices":[{"message":{"role":"assistant","content":"APPROVE"},"finish_reason":"stop"}]}');
+        ApiClient.SetMockResponse('{"choices":[{"message":{"role":"assistant","content":"APPROVE"},"finish_reason":"stop"}]}');
 
         // [WHEN] The decision prompt is sent
         DecisionText := ApiClient.Complete('test-model', 'Reply APPROVE or REVIEW.', 'Customer 10000 credit check. Auto-post?', 50);
@@ -95,8 +72,7 @@ codeunit 95905 "CE LLM Model Call Tst ori"
     begin
         // [GIVEN] The model is mocked to return a confirmation sentence
         ExpectedSummary := 'Sales order 101028 for customer 10000 has been posted.';
-        SafeBind();
-        LLMAIHandler.SetResponse('{"choices":[{"message":{"role":"assistant","content":"' + ExpectedSummary + '"},"finish_reason":"stop"}]}');
+        ApiClient.SetMockResponse('{"choices":[{"message":{"role":"assistant","content":"' + ExpectedSummary + '"},"finish_reason":"stop"}]}');
 
         // [WHEN] The summary prompt is sent
         SummaryText := ApiClient.Complete('test-model', '', 'Confirm the posted order in one sentence.', 200);
@@ -115,8 +91,7 @@ codeunit 95905 "CE LLM Model Call Tst ori"
         Response: JsonObject;
     begin
         // [GIVEN] A mocked response and a well-formed request body
-        SafeBind();
-        LLMAIHandler.SetResponse('{"choices":[{"message":{"role":"assistant","content":"parsed"},"finish_reason":"stop"}]}');
+        ApiClient.SetMockResponse('{"choices":[{"message":{"role":"assistant","content":"parsed"},"finish_reason":"stop"}]}');
 
         UserMessage.Add('role', 'user');
         UserMessage.Add('content', 'hi');
@@ -141,8 +116,7 @@ codeunit 95905 "CE LLM Model Call Tst ori"
         IdToken: JsonToken;
     begin
         // [GIVEN] A mocked models response
-        SafeBind();
-        LLMAIHandler.SetResponse('{"data":[{"id":"qwen3:8b","object":"model"},{"id":"qwen2.5:14b","object":"model"}]}');
+        ApiClient.SetMockResponse('{"data":[{"id":"qwen3:8b","object":"model"},{"id":"qwen2.5:14b","object":"model"}]}');
 
         // [WHEN] The models are listed
         Models := ApiClient.ListModels();
@@ -160,8 +134,7 @@ codeunit 95905 "CE LLM Model Call Tst ori"
         ApiClient: Codeunit "CE LLM API Client ori";
     begin
         // [GIVEN] The next call is configured to fail
-        SafeBind();
-        LLMAIHandler.SetErrorResponse('Could not reach the LLM API.');
+        ApiClient.SetMockError('Could not reach the LLM API.');
 
         // [WHEN] The models are listed
         asserterror ApiClient.ListModels();

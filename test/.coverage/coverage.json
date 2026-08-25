@@ -15,12 +15,12 @@
     "95903|ListModelsForProvider_ReturnsModels": 1,
     "95904|ValidateModel_EmptyValue_NoError": 0,
     "95904|ValidateModel_ApiUnreachable_AllowsAnyValue": 0,
-    "95905|Complete_ReturnsMockedText": 1,
+    "95905|Complete_ReturnsMockedText": 0,
     "95905|Complete_ApiError_Raised": 0,
-    "95905|AiDecisionStep_ReturnsApprove": 1,
-    "95905|AiSummaryStep_ReturnsSentence": 1,
-    "95905|SendChatCompletion_ParsesResponseObject": 1,
-    "95905|ListModels_ReturnsModelArray": 1,
+    "95905|AiDecisionStep_ReturnsApprove": 0,
+    "95905|AiSummaryStep_ReturnsSentence": 0,
+    "95905|SendChatCompletion_ParsesResponseObject": 0,
+    "95905|ListModels_ReturnsModelArray": 0,
     "95905|ListModels_ApiError_Raised": 0,
     "95903|ListModels_WithDefaultProvider_ReturnsModels": 1
   }

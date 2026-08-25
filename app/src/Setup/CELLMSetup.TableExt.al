@@ -23,8 +23,8 @@ tableextension 10035485 "CE LLM Setup ori" extends "Cloud Events Setup ori"
     /// </summary>
     procedure GetDefaultProvider(var ProviderSetup: Record "CE LLM Provider Setup ori"): Boolean
     begin
-        Rec.SetLoadFields("CE LLM Def. Provider Code ori");
-        Rec.GetRecordOnce();
+        if not Rec.Get() then
+            exit(false);
         if Rec."CE LLM Def. Provider Code ori" <> '' then
             exit(ProviderSetup.Get(Rec."CE LLM Def. Provider Code ori"));
     end;
@@ -46,9 +46,11 @@ tableextension 10035485 "CE LLM Setup ori" extends "Cloud Events Setup ori"
     procedure GetLLMBaseUrl(): Text
     var
         ProviderSetup: Record "CE LLM Provider Setup ori";
+        NoProviderErr: Label 'No LLM provider configured. Set a default provider in Cloud Events Setup or on your User Setup.', Comment = 'is-IS=Engin LLM veita stillt. Stilltu sjálfgefna veitu í Uppsetningu atburða í skýinu eða á notandauppsetningu.';
     begin
         if GetDefaultProvider(ProviderSetup) then
             exit(ProviderSetup."Base URL");
+        Error(NoProviderErr);
     end;
 
     /// <summary>

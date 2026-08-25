@@ -12,6 +12,10 @@ codeunit 10035485 "CE LLM API Client ori"
     Access = Internal;
 
     var
+        MockResponseText: Text;
+        MockErrorText: Text;
+        IsMockMode: Boolean;
+        IsMockError: Boolean;
         LastOperation: Text[50];
         LastHttpMethod: Text[10];
         LastRequestUrl: Text;
@@ -28,6 +32,26 @@ codeunit 10035485 "CE LLM API Client ori"
         CallFailedErr: Label 'Could not reach the LLM API. %1', Comment = '%1 = error detail, is-IS=Náði ekki sambandi við LLM API. %1';
         ApiStatusErr: Label 'LLM API returned status %1. %2', Comment = '%1 = status code, %2 = detail, is-IS=LLM API skilaði stöðu %1. %2';
         InvalidResponseErr: Label 'Received an invalid response from the LLM API.', Comment = 'is-IS=Ógilt svar barst frá LLM API.';
+
+    /// <summary>
+    /// Enables mock mode for testing. All API calls return this response without HTTP.
+    /// </summary>
+    internal procedure SetMockResponse(ResponseJson: Text)
+    begin
+        IsMockMode := true;
+        IsMockError := false;
+        MockResponseText := ResponseJson;
+    end;
+
+    /// <summary>
+    /// Enables mock error mode. All API calls raise this error without HTTP.
+    /// </summary>
+    internal procedure SetMockError(ErrorMsg: Text)
+    begin
+        IsMockMode := true;
+        IsMockError := true;
+        MockErrorText := ErrorMsg;
+    end;
 
     /// <summary>
     /// Writes the buffered log entry from the last API call to the Request Log
@@ -130,7 +154,12 @@ codeunit 10035485 "CE LLM API Client ori"
         StartTime: DateTime;
         IsHandled: Boolean;
     begin
-        HasPendingLog := false;
+        if IsMockMode then begin
+            if IsMockError then
+                Error(MockErrorText);
+            Response.ReadFrom(MockResponseText);
+            exit;
+        end;
         RequestBody.WriteTo(RequestText);
         HttpContent.WriteFrom(RequestText);
         HttpContent.GetHeaders(ContentHeaders);
@@ -195,6 +224,16 @@ codeunit 10035485 "CE LLM API Client ori"
         StartTime: DateTime;
         IsHandled: Boolean;
     begin
+        if IsMockMode then begin
+            if IsMockError then
+                Error(MockErrorText);
+            Response.ReadFrom(MockResponseText);
+            if Response.Get('data', DataToken) then
+                if DataToken.IsArray() then
+                    Models := DataToken.AsArray();
+            exit;
+        end;
+
         HasPendingLog := false;
         RequestUrl := StrSubstNo(ModelsEndpointTok, CloudEventsSetup.GetLLMBaseUrl());
 

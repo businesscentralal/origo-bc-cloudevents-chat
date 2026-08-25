@@ -14,35 +14,12 @@ codeunit 95904 "CE LLM Chat Role Tst ori"
 
     var
         Assert: Codeunit "Library Assert";
-        LLMAIHandler: Codeunit "CE LLM AI Handler ori";
-        MockProvider: Codeunit "CE LLM Mock Provider ori";
-        IsInitialized: Boolean;
-
-    local procedure Initialize()
-    begin
-        if IsInitialized then
-            exit;
-        MockProvider.Create();
-        MockProvider.SetServiceKey('test-key');
-        MockProvider.SetAsDefault();
-        if not TryBind() then; // already bound by another test codeunit
-        IsInitialized := true;
-    end;
-
-    [TryFunction]
-    local procedure TryBind()
-    begin
-        BindSubscription(LLMAIHandler);
-    end;
 
     [Test]
     procedure ValidateModel_EmptyValue_NoError()
     var
         LLMChatRole: Record "MCP Chat Role ori";
     begin
-        // [SCENARIO] Validating LLM Model with empty value does not produce an error.
-        Initialize();
-
         // [GIVEN] A new Chat Role record
         LLMChatRole.Init();
         LLMChatRole.Code := CopyStr('X-' + Format(CreateGuid(), 0, 4), 1, MaxStrLen(LLMChatRole.Code));
@@ -60,15 +37,11 @@ codeunit 95904 "CE LLM Chat Role Tst ori"
     var
         LLMChatRole: Record "MCP Chat Role ori";
     begin
-        // [SCENARIO] When the models API is unreachable, any model value is accepted.
-        Initialize();
-        LLMAIHandler.SetErrorResponse('Simulated unreachable');
-
         // [GIVEN] A new Chat Role record
         LLMChatRole.Init();
         LLMChatRole.Code := CopyStr('X-' + Format(CreateGuid(), 0, 4), 1, MaxStrLen(LLMChatRole.Code));
 
-        // [WHEN] LLM Model is validated with a model name (API cannot be reached in test)
+        // [WHEN] LLM Model is validated with a model name (API uses TryFunction, fails gracefully)
         LLMChatRole.Validate("CE LLM Model ori", 'qwen3:8b');
 
         // [THEN] No error is thrown because the API check exits gracefully

@@ -4,8 +4,7 @@ using Origo.APP.CloudEvents;
 using System.TestLibraries.Utilities;
 
 /// <summary>
-/// Tests for the LLM-specific "LLM Model" field added by the
-/// "LLM MCP Chat Role" tableextension on the base "MCP Chat Role" table.
+/// Tests for user setup provider resolution and provider configuration.
 /// </summary>
 codeunit 95904 "CE LLM Chat Role Tst ori"
 {
@@ -16,35 +15,49 @@ codeunit 95904 "CE LLM Chat Role Tst ori"
         Assert: Codeunit "Library Assert";
 
     [Test]
-    procedure ValidateModel_EmptyValue_NoError()
+    procedure ResolveProvider_UserSetup_ReturnsProvider()
     var
-        LLMChatRole: Record "MCP Chat Role ori";
+        CEUserSetup: Record "CE User Setup ori";
+        ResolvedProvider: Record "CE LLM Provider Setup ori";
+        MockProvider: Codeunit "CE LLM Mock Provider ori";
+        LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
     begin
-        // [GIVEN] A new Chat Role record
-        LLMChatRole.Init();
-        LLMChatRole.Code := CopyStr('X-' + Format(CreateGuid(), 0, 4), 1, MaxStrLen(LLMChatRole.Code));
-        LLMChatRole.Insert(true);
+        // [GIVEN] A mock provider set on user setup
+        MockProvider.Create();
+        MockProvider.SetServiceKey('test-key');
+        if CEUserSetup.Get(UserSecurityId()) then begin
+            CEUserSetup."CE LLM Provider Code ori" := MockProvider.GetCode();
+            CEUserSetup.Modify();
+        end;
 
-        // [WHEN] LLM Model is validated with empty string
-        LLMChatRole.Validate("CE LLM Model ori", '');
+        // [WHEN] Provider is resolved
+        Assert.IsTrue(LLMChatSetup.ResolveProvider(ResolvedProvider), 'Should resolve a provider');
 
-        // [THEN] No error is thrown (empty exits early)
-        Assert.AreEqual('', LLMChatRole."CE LLM Model ori", 'LLM Model should be empty after validating with empty string.');
+        // [THEN] It matches the mock provider
+        Assert.AreEqual(MockProvider.GetCode(), ResolvedProvider.Code, 'Resolved provider should match user setup');
+
+        // [CLEANUP]
+        if CEUserSetup.Get(UserSecurityId()) then begin
+            CEUserSetup."CE LLM Provider Code ori" := '';
+            CEUserSetup.Modify();
+        end;
+        MockProvider.Cleanup();
     end;
 
     [Test]
-    procedure ValidateModel_ApiUnreachable_AllowsAnyValue()
+    procedure ProviderSetup_AuthType_SetsDefaults()
     var
-        LLMChatRole: Record "MCP Chat Role ori";
+        ProviderSetup: Record "CE LLM Provider Setup ori";
     begin
-        // [GIVEN] A new Chat Role record
-        LLMChatRole.Init();
-        LLMChatRole.Code := CopyStr('X-' + Format(CreateGuid(), 0, 4), 1, MaxStrLen(LLMChatRole.Code));
+        // [GIVEN] A new provider record
+        ProviderSetup.Init();
+        ProviderSetup.Code := 'AUTHTEST';
 
-        // [WHEN] LLM Model is validated with a model name (API uses TryFunction, fails gracefully)
-        LLMChatRole.Validate("CE LLM Model ori", 'qwen3:8b');
+        // [WHEN] Auth Type is set to Bearer
+        ProviderSetup.Validate("Auth Type", ProviderSetup."Auth Type"::Bearer);
 
-        // [THEN] No error is thrown because the API check exits gracefully
-        Assert.AreEqual('qwen3:8b', LLMChatRole."CE LLM Model ori", 'LLM Model should accept any value when API is unreachable.');
+        // [THEN] Default paths are populated
+        Assert.AreEqual('/v1/chat/completions', ProviderSetup."Chat Path", 'Chat path should default');
+        Assert.AreEqual('/v1/models', ProviderSetup."Models Path", 'Models path should default');
     end;
 }

@@ -94,26 +94,17 @@ codeunit 10035488 "CE LLM Chat Setup ori"
 
     /// <summary>
     /// Resolves the provider using the fallback chain:
-    /// 1. Chat Role provider (if set)
-    /// 2. User Setup provider (if set)
-    /// 3. Global default provider (Cloud Events Setup)
+    /// 1. User Setup provider (if set)
+    /// 2. Global default provider (Cloud Events Setup)
     /// </summary>
     internal procedure ResolveProvider(var ProviderSetup: Record "CE LLM Provider Setup ori"): Boolean
     var
         CEUserSetup: Record "CE User Setup ori";
         CloudEventsSetup: Record "Cloud Events Setup ori";
-        LLMChatRole: Record "MCP Chat Role ori";
     begin
-        if CEUserSetup.Get(UserSecurityId()) then begin
-            if CEUserSetup."MCP Chat Role Code" <> '' then begin
-                LLMChatRole.SetLoadFields("CE LLM Provider Code ori");
-                if LLMChatRole.Get(CEUserSetup."MCP Chat Role Code") then
-                    if LLMChatRole."CE LLM Provider Code ori" <> '' then
-                        exit(ProviderSetup.Get(LLMChatRole."CE LLM Provider Code ori"));
-            end;
+        if CEUserSetup.Get(UserSecurityId()) then
             if CEUserSetup."CE LLM Provider Code ori" <> '' then
                 exit(ProviderSetup.Get(CEUserSetup."CE LLM Provider Code ori"));
-        end;
         exit(CloudEventsSetup.GetDefaultProvider(ProviderSetup));
     end;
 
@@ -152,18 +143,13 @@ codeunit 10035488 "CE LLM Chat Setup ori"
             if SystemPrompt <> '' then
                 ConfigObject.Add('systemPrompt', SystemPrompt);
 
-            if CEUserSetup."MCP Chat Role Code" <> '' then begin
-                LLMChatRole.SetLoadFields("CE LLM Model ori");
-                if LLMChatRole.Get(CEUserSetup."MCP Chat Role Code") then begin
+            if CEUserSetup."MCP Chat Role Code" <> '' then
+                if LLMChatRole.Get(CEUserSetup."MCP Chat Role Code") then
                     SkillText := LLMChatRole.GetSkill();
-                    if LLMChatRole."CE LLM Model ori" <> '' then
-                        ConfigObject.Add('model', LLMChatRole."CE LLM Model ori");
-                end;
-            end;
         end;
 
-        if not ConfigObject.Contains('model') then
-            ConfigObject.Add('model', GetDefaultModel());
+        if ResolveProvider(ProviderSetup) then
+            ConfigObject.Add('model', ProviderSetup."Default Model");
 
         if SkillText <> '' then
             ConfigObject.Add('skill', DefaultSkillInstructionTok + '\n\n' + SkillText)
@@ -290,13 +276,6 @@ codeunit 10035488 "CE LLM Chat Setup ori"
     internal procedure ClearCredentials()
     begin
         ClearApiKey();
-    end;
-
-    local procedure GetDefaultModel(): Text
-    var
-        CloudEventsSetup: Record "Cloud Events Setup ori";
-    begin
-        exit(CloudEventsSetup.GetLLMDefaultModel());
     end;
 
     var

@@ -31,6 +31,12 @@ tableextension 10035486 "CE LLM MCP Chat Role ori" extends "MCP Chat Role ori"
                     Error(InvalidModelErr, Rec."CE LLM Model ori");
             end;
         }
+        field(10035486; "CE LLM Provider Code ori"; Code[20])
+        {
+            Caption = 'LLM Provider', Comment = 'is-IS=LLM veita';
+            DataClassification = CustomerContent;
+            TableRelation = "CE LLM Provider Setup ori".Code where(Enabled = const(true));
+        }
     }
 
     var

@@ -3,119 +3,98 @@ namespace Origo.APP.CloudEvents.LLM;
 using Origo.APP.CloudEvents;
 
 /// <summary>
-/// Extends Cloud Events Setup with LLM-specific configuration:
-/// base URL, default model for server-side calls, and the service API key.
+/// Extends Cloud Events Setup with the default LLM provider reference.
+/// All provider-specific config (URL, model, keys, timeout) lives on the Provider Setup table.
 /// </summary>
 tableextension 10035485 "CE LLM Setup ori" extends "Cloud Events Setup ori"
 {
     fields
     {
-        field(10035485; "CE LLM Base URL ori"; Text[250])
+        field(10035489; "CE LLM Def. Provider Code ori"; Code[20])
         {
-            Caption = 'LLM Base URL', Comment = 'is-IS=LLM grunnvefslóð';
+            Caption = 'Default LLM Provider', Comment = 'is-IS=Sjálfgefin LLM veita';
             DataClassification = CustomerContent;
-        }
-        field(10035486; "CE LLM Default Model ori"; Text[100])
-        {
-            Caption = 'LLM Default Model', Comment = 'is-IS=Sjálfgefið LLM líkan';
-            DataClassification = CustomerContent;
-        }
-        field(10035487; "CE LLM Timeout ori"; Integer)
-        {
-            Caption = 'API Timeout (seconds)', Comment = 'is-IS=API tímamörk (sekúndur)';
-            DataClassification = SystemMetadata;
-            InitValue = 300;
-            MinValue = 30;
-            MaxValue = 600;
-        }
-        field(10035488; "CE LLM Max Tokens ori"; Integer)
-        {
-            Caption = 'Max Output Tokens', Comment = 'is-IS=Hámarks úttaksmerki';
-            DataClassification = SystemMetadata;
-            InitValue = 4096;
-            MinValue = 256;
-            MaxValue = 128000;
+            TableRelation = "CE LLM Provider Setup ori".Code where(Enabled = const(true));
         }
     }
 
-    var
-        ServiceApiKeyTok: Label 'CE_LLM_Service_ApiKey', Locked = true;
-        DefaultModelTok: Label 'qwen3:8b', Locked = true;
-        DefaultBaseUrlTok: Label 'https://llm.kappi.is', Locked = true;
-        ServiceApiKeyMissingErr: Label 'LLM Service API Key is not configured. Set it in Cloud Events Setup.', Comment = 'is-IS=LLM þjónustulykill er ekki stilltur. Stilltu hann í Uppsetning atburða í skýinu.';
-
     /// <summary>
-    /// Stores the LLM service API key in IsolatedStorage (Module scope).
+    /// Returns the default provider setup record.
     /// </summary>
-    [NonDebuggable]
-    procedure SetLLMServiceApiKey(KeyValue: Text)
+    procedure GetDefaultProvider(var ProviderSetup: Record "CE LLM Provider Setup ori"): Boolean
     begin
-        if KeyValue = '' then begin
-            if IsolatedStorage.Contains(ServiceApiKeyTok, DataScope::Module) then
-                IsolatedStorage.Delete(ServiceApiKeyTok, DataScope::Module);
-            exit;
-        end;
-
-        IsolatedStorage.Set(ServiceApiKeyTok, KeyValue, DataScope::Module);
+        Rec.SetLoadFields("CE LLM Def. Provider Code ori");
+        Rec.GetRecordOnce();
+        if Rec."CE LLM Def. Provider Code ori" <> '' then
+            exit(ProviderSetup.Get(Rec."CE LLM Def. Provider Code ori"));
     end;
 
     /// <summary>
-    /// Retrieves the LLM service API key from IsolatedStorage. Errors if not configured.
-    /// </summary>
-    [NonDebuggable]
-    procedure GetLLMServiceApiKey() KeyValue: Text
-    begin
-        if not IsolatedStorage.Get(ServiceApiKeyTok, DataScope::Module, KeyValue) then
-            Error(ServiceApiKeyMissingErr);
-    end;
-
-    /// <summary>
-    /// Returns true if an LLM service API key is stored in IsolatedStorage.
-    /// </summary>
-    procedure HasLLMServiceApiKey(): Boolean
-    begin
-        exit(IsolatedStorage.Contains(ServiceApiKeyTok, DataScope::Module));
-    end;
-
-    /// <summary>
-    /// Returns the configured default LLM model, falling back to a built-in default.
+    /// Returns the default model from the default provider.
     /// </summary>
     procedure GetLLMDefaultModel(): Text
+    var
+        ProviderSetup: Record "CE LLM Provider Setup ori";
     begin
-        Rec.SetLoadFields("CE LLM Default Model ori");
-        Rec.GetRecordOnce();
-        if Rec."CE LLM Default Model ori" <> '' then
-            exit(Rec."CE LLM Default Model ori");
-        exit(DefaultModelTok);
+        if GetDefaultProvider(ProviderSetup) then
+            exit(ProviderSetup."Default Model");
     end;
 
     /// <summary>
-    /// Returns the configured LLM base URL, falling back to the built-in default.
+    /// Returns the base URL from the default provider.
     /// </summary>
     procedure GetLLMBaseUrl(): Text
+    var
+        ProviderSetup: Record "CE LLM Provider Setup ori";
     begin
-        Rec.SetLoadFields("CE LLM Base URL ori");
-        Rec.GetRecordOnce();
-        if Rec."CE LLM Base URL ori" <> '' then
-            exit(Rec."CE LLM Base URL ori");
-        exit(DefaultBaseUrlTok);
+        if GetDefaultProvider(ProviderSetup) then
+            exit(ProviderSetup."Base URL");
     end;
 
+    /// <summary>
+    /// Returns the timeout in milliseconds from the default provider.
+    /// </summary>
     procedure GetLLMTimeoutMs(): Integer
+    var
+        ProviderSetup: Record "CE LLM Provider Setup ori";
     begin
-        Rec.SetLoadFields("CE LLM Timeout ori");
-        Rec.GetRecordOnce();
-        if Rec."CE LLM Timeout ori" > 0 then
-            exit(Rec."CE LLM Timeout ori" * 1000);
-        exit(300000); // 5 min default
+        if GetDefaultProvider(ProviderSetup) then
+            exit(ProviderSetup.GetTimeoutMs());
+        exit(300000);
     end;
 
+    /// <summary>
+    /// Returns the max tokens from the default provider.
+    /// </summary>
     procedure GetLLMMaxTokens(): Integer
+    var
+        ProviderSetup: Record "CE LLM Provider Setup ori";
     begin
-        Rec.SetLoadFields("CE LLM Max Tokens ori");
-        Rec.GetRecordOnce();
-        if Rec."CE LLM Max Tokens ori" > 0 then
-            exit(Rec."CE LLM Max Tokens ori");
+        if GetDefaultProvider(ProviderSetup) then
+            exit(ProviderSetup.GetMaxTokens());
         exit(4096);
+    end;
+
+    /// <summary>
+    /// Returns the service API key from the default provider.
+    /// </summary>
+    [NonDebuggable]
+    procedure GetLLMServiceApiKey(): Text
+    var
+        ProviderSetup: Record "CE LLM Provider Setup ori";
+    begin
+        if GetDefaultProvider(ProviderSetup) then
+            exit(ProviderSetup.GetServiceApiKey());
+    end;
+
+    /// <summary>
+    /// Returns true if the default provider has a service API key.
+    /// </summary>
+    procedure HasLLMServiceApiKey(): Boolean
+    var
+        ProviderSetup: Record "CE LLM Provider Setup ori";
+    begin
+        if GetDefaultProvider(ProviderSetup) then
+            exit(ProviderSetup.HasServiceApiKey());
     end;
 }

@@ -66,19 +66,24 @@ codeunit 10035491 "CE LLM Model Call Impl ori" implements "Cloud Event Msg Inter
     [NonDebuggable]
     internal procedure ExecuteCloudEventTask(var Argument: Record "CE Message Argument ori")
     var
+        ProviderSetup: Record "CE LLM Provider Setup ori";
         ApiClient: Codeunit "CE LLM API Client ori";
         ToolRunner: Codeunit "CE LLM Tool Runner ori";
         LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
         RequestJson: JsonObject;
         ResponseJson: JsonObject;
         ToolsToken: JsonToken;
+        ProviderToken: JsonToken;
+        ProviderCode: Code[20];
         Model: Text;
         SystemPrompt: Text;
         UserPrompt: Text;
+        ApiKey: Text;
         MaxTokens: Integer;
         MaxToolIterations: Integer;
         AnswerText: Text;
         HasTools: Boolean;
+        HasProvider: Boolean;
     begin
         Argument.AssertVersion1();
         Argument.AssertIsLicensed();
@@ -86,6 +91,18 @@ codeunit 10035491 "CE LLM Model Call Impl ori" implements "Cloud Event Msg Inter
             exit;
 
         RequestJson := Argument.GetRequestJson();
+
+        if RequestJson.Get('provider', ProviderToken) then
+            ProviderCode := CopyStr(ProviderToken.AsValue().AsText(), 1, MaxStrLen(ProviderCode));
+
+        if ProviderCode <> '' then begin
+            if not ProviderSetup.Get(ProviderCode) then begin
+                Argument.RespondWithError(StrSubstNo(ProviderNotFoundErr, ProviderCode));
+                exit;
+            end;
+            HasProvider := true;
+        end else
+            HasProvider := LLMChatSetup.ResolveProvider(ProviderSetup);
 
         Model := GetTextValue(RequestJson, 'model');
         SystemPrompt := GetTextValue(RequestJson, 'system');
@@ -95,20 +112,28 @@ codeunit 10035491 "CE LLM Model Call Impl ori" implements "Cloud Event Msg Inter
         if RequestJson.Get('tools', ToolsToken) then
             HasTools := ToolsToken.IsArray() and (ToolsToken.AsArray().Count() > 0);
 
-        if Model = '' then begin
-            Argument.RespondWithError(MissingModelErr);
-            exit;
-        end;
-
         if UserPrompt = '' then begin
             Argument.RespondWithError(MissingPromptErr);
             exit;
         end;
 
-        if HasTools then
-            AnswerText := ToolRunner.RunWithTools(Model, SystemPrompt, UserPrompt, ResolveMaxTokens(MaxTokens), ToolsToken.AsArray(), MaxToolIterations)
-        else
-            AnswerText := ApiClient.Complete(Model, SystemPrompt, UserPrompt, MaxTokens);
+        if HasProvider then begin
+            Model := ProviderSetup.ResolveModel(Model);
+            ApiKey := ProviderSetup.GetApiKey();
+            if HasTools then
+                AnswerText := ToolRunner.RunWithTools(Model, SystemPrompt, UserPrompt, ProviderSetup.GetMaxTokens(), ToolsToken.AsArray(), MaxToolIterations)
+            else
+                AnswerText := ApiClient.Complete(Model, SystemPrompt, UserPrompt, MaxTokens);
+        end else begin
+            if Model = '' then begin
+                Argument.RespondWithError(MissingModelErr);
+                exit;
+            end;
+            if HasTools then
+                AnswerText := ToolRunner.RunWithTools(Model, SystemPrompt, UserPrompt, ResolveMaxTokens(MaxTokens), ToolsToken.AsArray(), MaxToolIterations)
+            else
+                AnswerText := ApiClient.Complete(Model, SystemPrompt, UserPrompt, MaxTokens);
+        end;
 
         ResponseJson.Add('status', 'Success');
         ResponseJson.Add('model', Model);
@@ -145,6 +170,7 @@ codeunit 10035491 "CE LLM Model Call Impl ori" implements "Cloud Event Msg Inter
     end;
 
     var
-        MissingModelErr: Label 'A model is required. Provide a JSON object with a "model" property. Call LLM.Model.List to get the available model ids.', Comment = 'is-IS=Líkan er nauðsynlegt. Sendu JSON hlut með eigindinni "model". Kallaðu á LLM.Model.List til að sjá tiltæk líkön.';
+        MissingModelErr: Label 'A model is required. Provide a JSON object with a "model" property. Call Provider.Model.List to get the available model ids.', Comment = 'is-IS=Líkan er nauðsynlegt. Sendu JSON hlut með eigindinni "model". Kallaðu á Provider.Model.List til að sjá tiltæk líkön.';
         MissingPromptErr: Label 'A prompt is required. Provide a "prompt" property in the request.', Comment = 'is-IS=Kvaðning er nauðsynleg. Sendu eigindina "prompt" í beiðninni.';
+        ProviderNotFoundErr: Label 'Provider ''%1'' not found.', Comment = '%1 = provider code, is-IS=Veita ''%1'' fannst ekki.';
 }

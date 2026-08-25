@@ -11,6 +11,9 @@ codeunit 10035493 "CE LLM Model List Impl ori" implements "Cloud Event Msg Inter
 {
     Access = Internal;
 
+    var
+        ProviderNotFoundErr: Label 'Provider ''%1'' not found.', Comment = '%1 = provider code, is-IS=Veita ''%1'' fannst ekki.';
+
     /// <summary>
     /// Determines whether this message type is enabled.
     /// </summary>
@@ -63,22 +66,39 @@ codeunit 10035493 "CE LLM Model List Impl ori" implements "Cloud Event Msg Inter
     [NonDebuggable]
     internal procedure ExecuteCloudEventTask(var Argument: Record "CE Message Argument ori")
     var
-        CloudEventsSetup: Record "Cloud Events Setup ori";
+        ProviderSetup: Record "CE LLM Provider Setup ori";
         ApiClient: Codeunit "CE LLM API Client ori";
         LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
+        RequestJson: JsonObject;
         ResponseJson: JsonObject;
         ModelsJson: JsonArray;
+        ProviderToken: JsonToken;
+        ProviderCode: Code[20];
     begin
         Argument.AssertVersion1();
         Argument.AssertIsLicensed();
         if not LLMChatSetup.AssertServiceGate(Argument) then
             exit;
 
-        ModelsJson := ApiClient.ListModels();
+        RequestJson := Argument.GetRequestJson();
+        if RequestJson.Get('provider', ProviderToken) then
+            ProviderCode := CopyStr(ProviderToken.AsValue().AsText(), 1, MaxStrLen(ProviderCode));
+
+        if ProviderCode <> '' then begin
+            if not ProviderSetup.Get(ProviderCode) then begin
+                Argument.RespondWithError(StrSubstNo(ProviderNotFoundErr, ProviderCode));
+                exit;
+            end;
+            ModelsJson := ApiClient.ListModelsForProvider(ProviderSetup);
+        end else
+            if LLMChatSetup.ResolveProvider(ProviderSetup) then
+                ModelsJson := ApiClient.ListModelsForProvider(ProviderSetup)
+            else
+                ModelsJson := ApiClient.ListModels();
 
         ResponseJson.Add('status', 'Success');
         ResponseJson.Add('noOfRecords', ModelsJson.Count());
-        ResponseJson.Add('defaultModel', CloudEventsSetup.GetLLMDefaultModel());
+        ResponseJson.Add('defaultModel', ProviderSetup."Default Model");
         ResponseJson.Add('result', ModelsJson);
         Argument.SetResponseJson(ResponseJson);
         Argument."Content Type" := Argument.GetContentTypeJson();

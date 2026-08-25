@@ -16,6 +16,11 @@ pageextension 10035486 "CE LLM Chat User SetEd ori" extends "CE User Setup Edito
             {
                 Caption = 'LLM Chat', Comment = 'is-IS=LLM-spjall';
 
+                field(ori_LLMProvider; Rec."CE LLM Provider Code ori")
+                {
+                    ApplicationArea = All;
+                    ToolTip = 'Specifies the default LLM provider for this user. Overrides the global default but is overridden by the Chat Role provider.', Comment = 'is-IS=Tilgreinir sjálfgefna LLM veitu fyrir þennan notanda. Hnekkir almennu sjálfgefnu en er hnekkt af veitu spjallhlutverksins.';
+                }
                 field(ori_HasApiKey; HasApiKeyValue)
                 {
                     ApplicationArea = All;

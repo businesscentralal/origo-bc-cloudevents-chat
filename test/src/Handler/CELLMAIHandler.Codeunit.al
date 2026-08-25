@@ -5,7 +5,7 @@ namespace Origo.APP.CloudEvents.LLM;
 /// Subscribes to the LLM API Client's OnBeforeSendRequest event to intercept the
 /// outgoing call and return a canned response (or simulate a failure) without network access.
 /// </summary>
-codeunit 95904 "CE LLM AI Handler ori"
+codeunit 95900 "CE LLM AI Handler ori"
 {
     EventSubscriberInstance = Manual;
     SingleInstance = true;

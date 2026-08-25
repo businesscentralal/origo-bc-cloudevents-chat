@@ -2,7 +2,7 @@ namespace Origo.APP.CloudEvents.LLM;
 
 using System.TestTools.TestRunner;
 
-codeunit 95900 "CE LLM Test Install ori"
+codeunit 95901 "CE LLM Test Install ori"
 {
     Subtype = Install;
 

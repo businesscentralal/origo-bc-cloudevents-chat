@@ -241,6 +241,95 @@ codeunit 10035485 "CE LLM API Client ori"
     end;
 
     /// <summary>
+    /// Sends a chat completion using a specific provider configuration.
+    /// </summary>
+    [NonDebuggable]
+    procedure SendForProvider(var ProviderSetup: Record "CE LLM Provider Setup ori"; RequestBody: JsonObject; ApiKey: Text) Response: JsonObject
+    var
+        HttpClientVar: HttpClient;
+        HttpContent: HttpContent;
+        HttpResponse: HttpResponseMessage;
+        ContentHeaders: HttpHeaders;
+        RequestText: Text;
+        ResponseText: Text;
+        RequestUrl: Text;
+        StartTime: DateTime;
+    begin
+        HasPendingLog := false;
+        RequestBody.WriteTo(RequestText);
+        HttpContent.WriteFrom(RequestText);
+        HttpContent.GetHeaders(ContentHeaders);
+        if ContentHeaders.Contains('Content-Type') then
+            ContentHeaders.Remove('Content-Type');
+        ContentHeaders.Add('Content-Type', 'application/json');
+
+        if ApiKey = '' then
+            ApiKey := ProviderSetup.GetApiKey();
+
+        ProviderSetup.ApplyAuthHeader(HttpClientVar, ApiKey);
+        HttpClientVar.Timeout(ProviderSetup.GetTimeoutMs());
+
+        RequestUrl := ProviderSetup.GetChatUrl();
+        StartTime := CurrentDateTime();
+        if not HttpClientVar.Post(RequestUrl, HttpContent, HttpResponse) then begin
+            BufferLog('chat/completions', 'POST', RequestUrl, RequestText, '',
+                GetLastErrorText(), 0, CurrentDateTime() - StartTime, false);
+            Error(CallFailedErr, GetLastErrorText());
+        end;
+
+        HttpResponse.Content.ReadAs(ResponseText);
+
+        if not HttpResponse.IsSuccessStatusCode() then begin
+            BufferLog('chat/completions', 'POST', RequestUrl, RequestText, ResponseText,
+                GetErrorDetail(ResponseText), HttpResponse.HttpStatusCode(), CurrentDateTime() - StartTime, false);
+            Error(ApiStatusErr, Format(HttpResponse.HttpStatusCode()), GetErrorDetail(ResponseText));
+        end;
+
+        BufferLog('chat/completions', 'POST', RequestUrl, RequestText, ResponseText,
+            '', HttpResponse.HttpStatusCode(), CurrentDateTime() - StartTime, true);
+
+        if not Response.ReadFrom(ResponseText) then
+            Error(InvalidResponseErr);
+    end;
+
+    /// <summary>
+    /// Lists models available on a specific provider.
+    /// </summary>
+    [NonDebuggable]
+    procedure ListModelsForProvider(var ProviderSetup: Record "CE LLM Provider Setup ori") Models: JsonArray
+    var
+        HttpClient: HttpClient;
+        HttpResponse: HttpResponseMessage;
+        Response: JsonObject;
+        DataToken: JsonToken;
+        RequestUrl: Text;
+        ResponseText: Text;
+        ApiKey: Text;
+    begin
+        ApiKey := ProviderSetup.GetApiKey();
+        RequestUrl := ProviderSetup.GetModelsUrl();
+
+        ProviderSetup.ApplyAuthHeader(HttpClient, ApiKey);
+
+        if not HttpClient.Get(RequestUrl, HttpResponse) then
+            Error(CallFailedErr, GetLastErrorText());
+
+        HttpResponse.Content.ReadAs(ResponseText);
+
+        if not HttpResponse.IsSuccessStatusCode() then
+            Error(ApiStatusErr, Format(HttpResponse.HttpStatusCode()), GetErrorDetail(ResponseText));
+
+        if not Response.ReadFrom(ResponseText) then
+            Error(InvalidResponseErr);
+
+        if Response.Get('data', DataToken) then
+            if DataToken.IsArray() then
+                Models := DataToken.AsArray();
+    end;
+
+
+
+    /// <summary>
     /// Extracts the assistant text from an OpenAI-compatible chat completions response.
     /// </summary>
     procedure ExtractText(Response: JsonObject) ResultText: Text

@@ -87,6 +87,31 @@ codeunit 10035488 "CE LLM Chat Setup ori"
         exit(false);
     end;
 
+    /// <summary>
+    /// Resolves the provider using the fallback chain:
+    /// 1. Chat Role provider (if set)
+    /// 2. User Setup provider (if set)
+    /// 3. Global default provider (Cloud Events Setup)
+    /// </summary>
+    internal procedure ResolveProvider(var ProviderSetup: Record "CE LLM Provider Setup ori"): Boolean
+    var
+        CEUserSetup: Record "CE User Setup ori";
+        CloudEventsSetup: Record "Cloud Events Setup ori";
+        LLMChatRole: Record "MCP Chat Role ori";
+    begin
+        if CEUserSetup.Get(UserSecurityId()) then begin
+            if CEUserSetup."MCP Chat Role Code" <> '' then begin
+                LLMChatRole.SetLoadFields("CE LLM Provider Code ori");
+                if LLMChatRole.Get(CEUserSetup."MCP Chat Role Code") then
+                    if LLMChatRole."CE LLM Provider Code ori" <> '' then
+                        exit(ProviderSetup.Get(LLMChatRole."CE LLM Provider Code ori"));
+            end;
+            if CEUserSetup."CE LLM Provider Code ori" <> '' then
+                exit(ProviderSetup.Get(CEUserSetup."CE LLM Provider Code ori"));
+        end;
+        exit(CloudEventsSetup.GetDefaultProvider(ProviderSetup));
+    end;
+
     [NonDebuggable]
     internal procedure BuildConfigJson(): Text
     var
@@ -222,7 +247,9 @@ codeunit 10035488 "CE LLM Chat Setup ori"
         TempNameValueBuffer.Reset();
         TempNameValueBuffer.DeleteAll();
 
-        ModelsJson := ApiClient.ListModels();
+        if not TryListModels(ApiClient, ModelsJson) then
+            exit(false);
+
         foreach ModelToken in ModelsJson do begin
             ModelObj := ModelToken.AsObject();
             if ModelObj.Get('id', IdTok) then begin
@@ -237,6 +264,12 @@ codeunit 10035488 "CE LLM Chat Setup ori"
         end;
 
         exit(TempNameValueBuffer.Count() > 0);
+    end;
+
+    [TryFunction]
+    local procedure TryListModels(var ApiClient: Codeunit "CE LLM API Client ori"; var ModelsJson: JsonArray)
+    begin
+        ModelsJson := ApiClient.ListModels();
     end;
 
     internal procedure ClearApiKey()

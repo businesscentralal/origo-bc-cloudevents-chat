@@ -12,6 +12,11 @@ pageextension 10035487 "CE LLM ChatRole Card ori" extends "MCP Chat Role Card or
     {
         addafter(Description)
         {
+            field(ori_LLMProvider; Rec."CE LLM Provider Code ori")
+            {
+                ApplicationArea = All;
+                ToolTip = 'Specifies the LLM provider to use for this role. Leave blank to use the default provider.', Comment = 'is-IS=Tilgreinir LLM veitu fyrir þetta hlutverk. Skildu eftir autt til að nota sjálfgefna veitu.';
+            }
             field(ori_LLMModel; Rec."CE LLM Model ori")
             {
                 ApplicationArea = All;

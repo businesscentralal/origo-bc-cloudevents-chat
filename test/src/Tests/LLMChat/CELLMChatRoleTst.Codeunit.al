@@ -7,21 +7,32 @@ using System.TestLibraries.Utilities;
 /// Tests for the LLM-specific "LLM Model" field added by the
 /// "LLM MCP Chat Role" tableextension on the base "MCP Chat Role" table.
 /// </summary>
-codeunit 95902 "CE LLM Chat Role Tst ori"
+codeunit 95904 "CE LLM Chat Role Tst ori"
 {
     Subtype = Test;
     TestPermissions = Disabled;
 
     var
         Assert: Codeunit "Library Assert";
+        LLMAIHandler: Codeunit "CE LLM AI Handler ori";
+        MockProvider: Codeunit "CE LLM Mock Provider ori";
         IsInitialized: Boolean;
 
     local procedure Initialize()
     begin
         if IsInitialized then
             exit;
-
+        MockProvider.Create();
+        MockProvider.SetServiceKey('test-key');
+        MockProvider.SetAsDefault();
+        if not TryBind() then; // already bound by another test codeunit
         IsInitialized := true;
+    end;
+
+    [TryFunction]
+    local procedure TryBind()
+    begin
+        BindSubscription(LLMAIHandler);
     end;
 
     [Test]
@@ -51,6 +62,7 @@ codeunit 95902 "CE LLM Chat Role Tst ori"
     begin
         // [SCENARIO] When the models API is unreachable, any model value is accepted.
         Initialize();
+        LLMAIHandler.SetErrorResponse('Simulated unreachable');
 
         // [GIVEN] A new Chat Role record
         LLMChatRole.Init();

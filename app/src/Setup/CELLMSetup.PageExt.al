@@ -16,12 +16,11 @@ pageextension 10035485 "CE LLM Setup ori" extends "Cloud Events Setup ori"
             group(ori_LLMChat)
             {
                 Caption = 'LLM Chat', Comment = 'is-IS=LLM-spjall';
-                Visible = HasServiceGateAccess;
 
                 field(ori_LLMDefProvider; Rec."CE LLM Def. Provider Code ori")
                 {
                     ApplicationArea = All;
-                    ToolTip = 'Specifies the default LLM provider for server-side calls and as fallback when no provider is set on the Chat Role.', Comment = 'is-IS=Tilgreinir sjálfgefna LLM veitu fyrir þjónustuköll og sem varakost þegar engin veita er stillt á spjallhlutverkinu.';
+                    ToolTip = 'Specifies the default LLM provider for server-side calls and as fallback when no provider is set on User Setup.', Comment = 'is-IS=Tilgreinir sjálfgefna LLM veitu fyrir þjónustuköll og sem varakost þegar engin veita er stillt á notandauppsetningu.';
                     Editable = PageIsEditable;
                 }
             }
@@ -39,7 +38,6 @@ pageextension 10035485 "CE LLM Setup ori" extends "Cloud Events Setup ori"
                 ToolTip = 'Open the LLM Provider Setup to configure endpoints, authentication, and models.', Comment = 'is-IS=Opna uppsetningu LLM veitu til að stilla endapunkta, auðkenningu og líkön.';
                 Image = Setup;
                 RunObject = page "CE LLM Provider List ori";
-                Visible = HasServiceGateAccess;
             }
         }
     }
@@ -69,15 +67,11 @@ pageextension 10035485 "CE LLM Setup ori" extends "Cloud Events Setup ori"
 
     var
         PageIsEditable: Boolean;
-        HasServiceGateAccess: Boolean;
         HttpClientDisabledMsg: Label 'HTTP client requests are not enabled for the Cloud Events LLM extension. The LLM chat and model lookup will not work until an administrator enables Allow HttpClient Requests in Extension Settings.', Comment = 'is-IS=HTTP-biðlarabeiðnir eru ekki virkar fyrir Cloud Events LLM viðbótina. LLM spjall og líkanauppfletting virka ekki fyrr en kerfisstjóri virkjar Leyfa HttpClient-beiðnir í stillingum viðbótar.';
         EnableHttpClientLbl: Label 'Open Extension Settings', Comment = 'is-IS=Opna stillingar viðbótar';
 
     trigger OnAfterGetCurrRecord()
-    var
-        LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
     begin
-        HasServiceGateAccess := LLMChatSetup.HasServiceGate();
         PageIsEditable := CurrPage.Editable;
     end;
 }

@@ -68,11 +68,10 @@ codeunit 10035488 "CE LLM Chat Setup ori"
 
     internal procedure HasApiKey(): Boolean
     var
-        CloudEventsSetup: Record "Cloud Events Setup ori";
+        ProviderSetup: Record "CE LLM Provider Setup ori";
     begin
-        if IsolatedStorage.Contains(ApiKeyStorageKeyTok, DataScope::User) then
-            exit(true);
-        exit(HasServiceGate() and CloudEventsSetup.HasLLMServiceApiKey());
+        if ResolveProvider(ProviderSetup) then
+            exit(ProviderSetup.HasApiKey());
     end;
 
     internal procedure HasServiceGate(): Boolean

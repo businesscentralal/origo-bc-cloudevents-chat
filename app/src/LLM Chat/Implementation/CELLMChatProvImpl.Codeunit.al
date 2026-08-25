@@ -14,13 +14,14 @@ codeunit 10035486 "CE LLM Chat Prov Impl ori" implements "MCP Chat Provider ori"
     Access = Internal;
 
     /// <summary>
-    /// Returns true when the current user has an LLM API key stored.
+    /// Returns true when the current user has an LLM provider configured.
     /// </summary>
     procedure IsConfigured(): Boolean
     var
+        ProviderSetup: Record "CE LLM Provider Setup ori";
         LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
     begin
-        exit(LLMChatSetup.HasApiKey());
+        exit(LLMChatSetup.ResolveProvider(ProviderSetup));
     end;
 
     /// <summary>

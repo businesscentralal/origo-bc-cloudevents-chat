@@ -26,6 +26,7 @@ codeunit 10035485 "CE LLM API Client ori"
         LastElapsed: Duration;
         LastIsSuccess: Boolean;
         HasPendingLog: Boolean;
+        LastServiceName: Text[50];
         ChatEndpointTok: Label '%1/v1/chat/completions', Locked = true;
         ModelsEndpointTok: Label '%1/v1/models', Locked = true;
         ServiceNameTok: Label 'LLM', Locked = true;
@@ -73,7 +74,7 @@ codeunit 10035485 "CE LLM API Client ori"
             exit;
 
         Logger.Log(
-            LastOperation, LastHttpMethod, LastRequestUrl, ServiceNameTok,
+            LastOperation, LastHttpMethod, LastRequestUrl, LastServiceName,
             LastHttpStatus, LastElapsed, LastIsSuccess, LastErrorText,
             LastRequestText, LastResponseText,
             Enum::"CE Request Log Type ori"::"LLM ori");
@@ -114,7 +115,7 @@ codeunit 10035485 "CE LLM API Client ori"
         RequestBody.Add('model', ResolveModel(Model));
         RequestBody.Add('messages', Messages);
         if ResolveMaxTokens(MaxTokens) > 0 then
-            RequestBody.Add('max_tokens', ResolveMaxTokens(MaxTokens));
+            RequestBody.Add('max_completion_tokens', ResolveMaxTokens(MaxTokens));
 
         Response := SendChatCompletion(RequestBody);
         exit(ExtractText(Response));
@@ -154,6 +155,7 @@ codeunit 10035485 "CE LLM API Client ori"
         StartTime: DateTime;
         IsHandled: Boolean;
     begin
+        LastServiceName := ServiceNameTok;
         if IsMockMode then begin
             if IsMockError then
                 Error(MockErrorText);
@@ -295,6 +297,7 @@ codeunit 10035485 "CE LLM API Client ori"
         StartTime: DateTime;
     begin
         HasPendingLog := false;
+        LastServiceName := ProviderSetup.Code;
         RequestBody.WriteTo(RequestText);
         HttpContent.WriteFrom(RequestText);
         HttpContent.GetHeaders(ContentHeaders);
@@ -345,6 +348,7 @@ codeunit 10035485 "CE LLM API Client ori"
         ResponseText: Text;
         ApiKey: Text;
     begin
+        LastServiceName := ProviderSetup.Code;
         ApiKey := ProviderSetup.GetApiKey();
         RequestUrl := ProviderSetup.GetModelsUrl();
 

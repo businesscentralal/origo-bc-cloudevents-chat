@@ -56,7 +56,7 @@ codeunit 10035490 "CE LLM Tool Runner ori"
         for Iteration := 1 to MaxIterations do begin
             Clear(RequestBody);
             RequestBody.Add('model', Model);
-            RequestBody.Add('max_tokens', MaxTokens);
+            RequestBody.Add('max_completion_tokens', MaxTokens);
             RequestBody.Add('messages', Messages);
             if OpenAITools.Count() > 0 then
                 RequestBody.Add('tools', OpenAITools);

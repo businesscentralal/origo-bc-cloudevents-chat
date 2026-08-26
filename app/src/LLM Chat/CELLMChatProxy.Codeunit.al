@@ -69,7 +69,7 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
         for Iteration := 1 to MaxIterations do begin
             Clear(RequestBody);
             RequestBody.Add('model', Model);
-            RequestBody.Add('max_tokens', ProviderSetup.GetMaxTokens());
+            RequestBody.Add('max_completion_tokens', ProviderSetup.GetMaxTokens());
             RequestBody.Add('messages', Messages);
             if OpenAITools.Count() > 0 then
                 RequestBody.Add('tools', OpenAITools);

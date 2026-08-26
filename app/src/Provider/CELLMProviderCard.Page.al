@@ -61,14 +61,16 @@ page 10035485 "CE LLM Provider Card ori"
                 field("Chat Path"; Rec."Chat Path")
                 {
                     ApplicationArea = All;
+                    Importance = Additional;
+                    ShowMandatory = ChatPathRequired;
                     ToolTip = 'Specifies the path appended to the base URL for chat completions. Default: /v1/chat/completions.', Comment = 'is-IS=Tilgreinir slóðina sem bætt er við grunnvefslóð fyrir spjallsvörun.';
-                    Visible = ShowChatPath;
                 }
                 field("Models Path"; Rec."Models Path")
                 {
                     ApplicationArea = All;
+                    Importance = Additional;
+                    ShowMandatory = ModelsPathRequired;
                     ToolTip = 'Specifies the path for listing available models. Default: /v1/models.', Comment = 'is-IS=Tilgreinir slóðina til að birta tiltæk líkön.';
-                    Visible = ShowModelsPath;
                 }
             }
             group(Model)
@@ -198,6 +200,8 @@ page 10035485 "CE LLM Provider Card ori"
         HasServiceKey: Boolean;
         ShowChatPath: Boolean;
         ShowModelsPath: Boolean;
+        ChatPathRequired: Boolean;
+        ModelsPathRequired: Boolean;
         ShowTestConnection: Boolean;
         ConnectionOkMsg: Label 'Connection successful. %1 model(s) available.', Comment = '%1 = count, is-IS=Tenging tókst. %1 líkan/líkön tiltæk.';
         NoApiKeyErr: Label 'No API key available for this provider. Set a personal key or a service key before testing.', Comment = 'is-IS=Enginn API-lykill tiltækur fyrir þessa veitu. Stilltu persónulegan lykil eða þjónustulykil áður en þú prófar.';
@@ -219,6 +223,8 @@ page 10035485 "CE LLM Provider Card ori"
         AuthConfig := Rec."Auth Type";
         ShowChatPath := AuthConfig.ShowChatPath();
         ShowModelsPath := AuthConfig.ShowModelsPath();
+        ChatPathRequired := ShowChatPath;
+        ModelsPathRequired := ShowModelsPath;
         ShowTestConnection := AuthConfig.SupportsModelLookup();
     end;
 }

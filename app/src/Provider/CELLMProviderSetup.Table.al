@@ -100,12 +100,30 @@ table 10035496 "CE LLM Provider Setup ori"
             Caption = 'Chat Completions Path', Comment = 'is-IS=Spjallslóð';
             DataClassification = CustomerContent;
             InitValue = '/v1/chat/completions';
+
+            trigger OnValidate()
+            var
+                AuthConfig: Interface "CE LLM Auth Config ori";
+            begin
+                AuthConfig := "Auth Type";
+                if ("Chat Path" <> '') and (not AuthConfig.ShowChatPath()) then
+                    Error(PathNotApplicableErr, FieldCaption("Chat Path"));
+            end;
         }
         field(9; "Models Path"; Text[100])
         {
             Caption = 'Models Path', Comment = 'is-IS=Líkanslóð';
             DataClassification = CustomerContent;
             InitValue = '/v1/models';
+
+            trigger OnValidate()
+            var
+                AuthConfig: Interface "CE LLM Auth Config ori";
+            begin
+                AuthConfig := "Auth Type";
+                if ("Models Path" <> '') and (not AuthConfig.ShowModelsPath()) then
+                    Error(PathNotApplicableErr, FieldCaption("Models Path"));
+            end;
         }
         field(10; Enabled; Boolean)
         {
@@ -135,6 +153,7 @@ table 10035496 "CE LLM Provider Setup ori"
         UserKeyPrefixTok: Label 'CE_LLM_Usr_%1', Locked = true;
         InvalidUrlErr: Label '''%1'' is not a valid URL. Include the scheme (e.g. https://api.openai.com).', Comment = '%1 = url, is-IS=''%1'' er ekki gild vefslóð. Hafðu skemað með (t.d. https://api.openai.com).';
         InvalidSchemeErr: Label 'Base URL must use https:// or http:// scheme.', Comment = 'is-IS=Grunnvefslóð verður að nota https:// eða http:// skema.';
+        PathNotApplicableErr: Label '%1 is not applicable for this Auth Type.', Comment = '%1 = field caption, is-IS=%1 á ekki við um þessa auðkenningartegund.';
 
     /// <summary>
     /// Stores the shared service API key for this provider (Module scope, gated).

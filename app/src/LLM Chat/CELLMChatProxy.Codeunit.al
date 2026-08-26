@@ -13,6 +13,7 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
 
     var
         ToolServer: Codeunit "CE MCP Tool Server";
+        ChatUtils: Codeunit "CE MCP Chat Utils ori";
 
     [NonDebuggable]
     internal procedure SendChatMessage(PayloadJson: Text): Text
@@ -23,25 +24,9 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
         PayloadObject: JsonObject;
         Messages: JsonArray;
         OpenAITools: JsonArray;
-        ToolTrace: JsonArray;
-        Response: JsonObject;
-        UsageObject: JsonObject;
-        UsageToken: JsonToken;
-        RequestBody: JsonObject;
-        ChoicesToken: JsonToken;
-        FirstChoice: JsonToken;
-        MessageObject: JsonObject;
-        MessageToken: JsonToken;
-        ToolCallsToken: JsonToken;
-        AssistantMessage: JsonObject;
-        ToolResults: JsonArray;
         Model: Text;
         SystemPrompt: Text;
         ApiKey: Text;
-        Reply: Text;
-        FinishReason: Text;
-        Iteration: Integer;
-        MaxIterations: Integer;
     begin
         if not PayloadObject.ReadFrom(PayloadJson) then
             exit(BuildErrorResponse('Invalid payload JSON.'));
@@ -65,56 +50,100 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
 
         BuildToolDefinitions(OpenAITools);
 
-        MaxIterations := 25;
-        for Iteration := 1 to MaxIterations do begin
-            Clear(RequestBody);
-            RequestBody.Add('model', Model);
-            RequestBody.Add('max_completion_tokens', ProviderSetup.GetMaxTokens());
-            RequestBody.Add('messages', Messages);
-            if OpenAITools.Count() > 0 then
-                RequestBody.Add('tools', OpenAITools);
+        exit(CallLLMOnce(ApiClient, ProviderSetup, Messages, OpenAITools, Model, ApiKey));
+    end;
 
-            if not TrySendToLLM(ApiClient, ProviderSetup, RequestBody, ApiKey, Response) then begin
-                ApiClient.LogLastRequest();
-                exit(BuildErrorResponse(GetLastErrorText()));
-            end;
+    [NonDebuggable]
+    internal procedure ContinueWithToolResults(ConversationState: Text; ToolResultsJson: Text): Text
+    var
+        ProviderSetup: Record "CE LLM Provider Setup ori";
+        LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
+        ApiClient: Codeunit "CE LLM API Client ori";
+        StateObject: JsonObject;
+        Messages: JsonArray;
+        OpenAITools: JsonArray;
+        MessagesToken: JsonToken;
+        Model: Text;
+        ApiKey: Text;
+    begin
+        if not LLMChatSetup.ResolveProvider(ProviderSetup) then
+            exit(BuildErrorResponse('No LLM provider configured.'));
+
+        ApiKey := ProviderSetup.GetApiKey();
+        if ApiKey = '' then
+            exit(BuildErrorResponse('API key not configured.'));
+
+        if not StateObject.ReadFrom(ConversationState) then
+            exit(BuildErrorResponse('Invalid conversation state.'));
+
+        Model := GetTextProperty(StateObject, 'model');
+        if StateObject.Get('messages', MessagesToken) then
+            Messages := MessagesToken.AsArray();
+        BuildToolDefinitions(OpenAITools);
+
+        AppendToolResultMessages(Messages, ToolResultsJson);
+
+        exit(CallLLMOnce(ApiClient, ProviderSetup, Messages, OpenAITools, Model, ApiKey));
+    end;
+
+    [NonDebuggable]
+    local procedure CallLLMOnce(var ApiClient: Codeunit "CE LLM API Client ori"; var ProviderSetup: Record "CE LLM Provider Setup ori"; var Messages: JsonArray; OpenAITools: JsonArray; Model: Text; ApiKey: Text): Text
+    var
+        Response: JsonObject;
+        RequestBody: JsonObject;
+        ChoicesToken: JsonToken;
+        FirstChoice: JsonToken;
+        MessageObject: JsonObject;
+        MessageToken: JsonToken;
+        ToolCallsToken: JsonToken;
+        AssistantMessage: JsonObject;
+        UsageObject: JsonObject;
+        UsageToken: JsonToken;
+        Reply: Text;
+        FinishReason: Text;
+    begin
+        ChatUtils.CompactOlderToolResults(Messages, 5, 500);
+        ChatUtils.TrimMessageHistory(Messages, 80000);
+
+        RequestBody.Add('model', Model);
+        RequestBody.Add('max_completion_tokens', ProviderSetup.GetMaxTokens());
+        RequestBody.Add('messages', Messages);
+        if OpenAITools.Count() > 0 then
+            RequestBody.Add('tools', OpenAITools);
+
+        if not TrySendToLLM(ApiClient, ProviderSetup, RequestBody, ApiKey, Response) then begin
             ApiClient.LogLastRequest();
+            exit(BuildErrorResponse(GetLastErrorText()));
+        end;
+        ApiClient.LogLastRequest();
 
-            if not Response.Get('choices', ChoicesToken) then
-                exit(BuildErrorResponse('Empty response from AI model.'));
-            if ChoicesToken.AsArray().Count() = 0 then
-                exit(BuildErrorResponse('Empty response from AI model.'));
+        if not Response.Get('choices', ChoicesToken) then
+            exit(BuildErrorResponse('Empty response from AI model.'));
+        if ChoicesToken.AsArray().Count() = 0 then
+            exit(BuildErrorResponse('Empty response from AI model.'));
 
-            ChoicesToken.AsArray().Get(0, FirstChoice);
-            FirstChoice.AsObject().Get('message', MessageToken);
-            MessageObject := MessageToken.AsObject();
+        ChoicesToken.AsArray().Get(0, FirstChoice);
+        FirstChoice.AsObject().Get('message', MessageToken);
+        MessageObject := MessageToken.AsObject();
 
-            Clear(AssistantMessage);
-            AssistantMessage.Add('role', 'assistant');
-            CopyMessageContent(MessageObject, AssistantMessage);
-            Messages.Add(AssistantMessage);
+        Clear(AssistantMessage);
+        AssistantMessage.Add('role', 'assistant');
+        CopyMessageContent(MessageObject, AssistantMessage);
+        Messages.Add(AssistantMessage);
 
-            if Response.Get('usage', UsageToken) then
-                if UsageToken.IsObject() then
-                    UsageObject := UsageToken.AsObject();
+        if Response.Get('usage', UsageToken) then
+            if UsageToken.IsObject() then
+                UsageObject := UsageToken.AsObject();
 
-            FinishReason := GetTextProperty(FirstChoice.AsObject(), 'finish_reason');
-            if FinishReason <> 'tool_calls' then begin
-                Reply := GetTextProperty(MessageObject, 'content');
-                exit(BuildSuccessResponse(Reply, ToolTrace, UsageObject));
-            end;
-
+        FinishReason := GetTextProperty(FirstChoice.AsObject(), 'finish_reason');
+        if FinishReason = 'tool_calls' then begin
             if not MessageObject.Get('tool_calls', ToolCallsToken) then
                 exit(BuildErrorResponse('Model signaled tool_calls but none present.'));
-
-            Clear(ToolResults);
-            ExecuteToolCalls(ToolCallsToken.AsArray(), ToolResults, ToolTrace);
-
-            AddToolResultMessages(Messages, ToolResults);
+            exit(BuildToolCallsResponse(ToolCallsToken.AsArray(), Messages, Model, UsageObject));
         end;
 
         Reply := GetTextProperty(MessageObject, 'content');
-        exit(BuildSuccessResponse(Reply, ToolTrace, UsageObject));
+        exit(BuildSuccessResponse(Reply, UsageObject));
     end;
 
     local procedure AddSystemMessage(var Messages: JsonArray; SystemPrompt: Text)
@@ -137,14 +166,6 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
             Target.Add('content', '');
         if Source.Get('tool_calls', ToolCallsToken) then
             Target.Add('tool_calls', ToolCallsToken);
-    end;
-
-    local procedure AddToolResultMessages(var Messages: JsonArray; ToolResults: JsonArray)
-    var
-        ResultToken: JsonToken;
-    begin
-        foreach ResultToken in ToolResults do
-            Messages.Add(ResultToken);
     end;
 
     local procedure BuildSystemPrompt(PayloadObject: JsonObject) SystemPrompt: Text
@@ -205,69 +226,82 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
                 Messages := MessagesToken.AsArray();
     end;
 
-    local procedure ExecuteToolCalls(ToolCallsArray: JsonArray; var ToolResults: JsonArray; var ToolTrace: JsonArray)
+    local procedure AppendToolResultMessages(var Messages: JsonArray; ToolResultsJson: Text)
     var
+        ResultsArray: JsonArray;
+        ResultToken: JsonToken;
+        ResultObj: JsonObject;
+        ToolMsg: JsonObject;
+        ResultText: Text;
+    begin
+        if not ResultsArray.ReadFrom(ToolResultsJson) then
+            exit;
+        foreach ResultToken in ResultsArray do begin
+            if not ResultToken.IsObject() then
+                continue;
+            ResultObj := ResultToken.AsObject();
+            Clear(ToolMsg);
+            ToolMsg.Add('role', 'tool');
+            ToolMsg.Add('tool_call_id', GetTextProperty(ResultObj, 'id'));
+            ResultText := ChatUtils.TruncateContent(GetTextProperty(ResultObj, 'result'), 0);
+            ToolMsg.Add('content', ResultText);
+            Messages.Add(ToolMsg);
+        end;
+    end;
+
+    local procedure BuildToolCallsResponse(ToolCallsArray: JsonArray; Messages: JsonArray; Model: Text; Usage: JsonObject) ResponseJson: Text
+    var
+        ResponseObject: JsonObject;
+        NormalizedCalls: JsonArray;
         CallToken: JsonToken;
         CallObject: JsonObject;
+        FunctionToken: JsonToken;
+        FunctionObject: JsonObject;
+        NormalizedCall: JsonObject;
+        InputObject: JsonObject;
+        StateObject: JsonObject;
+        ArgumentsText: Text;
+        ToolName: Text;
+        StateText: Text;
     begin
         foreach CallToken in ToolCallsArray do begin
             if not CallToken.IsObject() then
                 continue;
             CallObject := CallToken.AsObject();
-            ToolResults.Add(ExecuteSingleTool(CallObject, ToolTrace));
+            if not CallObject.Get('function', FunctionToken) then
+                continue;
+            FunctionObject := FunctionToken.AsObject();
+            ToolName := GetTextProperty(FunctionObject, 'name');
+            ArgumentsText := GetTextProperty(FunctionObject, 'arguments');
+
+            Clear(NormalizedCall);
+            NormalizedCall.Add('id', GetTextProperty(CallObject, 'id'));
+            NormalizedCall.Add('name', ToolName);
+            if (ArgumentsText <> '') and InputObject.ReadFrom(ArgumentsText) then begin
+                InjectTableFormat(ToolName, InputObject);
+                NormalizedCall.Add('arguments', InputObject);
+            end;
+            NormalizedCalls.Add(NormalizedCall);
         end;
+
+        StateObject.Add('messages', Messages);
+        StateObject.Add('model', Model);
+        StateObject.WriteTo(StateText);
+
+        ResponseObject.Add('type', 'tool_calls');
+        ResponseObject.Add('toolCalls', NormalizedCalls);
+        ResponseObject.Add('conversationState', StateText);
+        if Usage.Keys().Count() > 0 then
+            ResponseObject.Add('usage', Usage);
+        ResponseObject.WriteTo(ResponseJson);
     end;
 
-    local procedure ExecuteSingleTool(CallObject: JsonObject; var ToolTrace: JsonArray) ToolResult: JsonObject
-    var
-        TraceEntry: JsonObject;
-        FunctionToken: JsonToken;
-        FunctionObject: JsonObject;
-        InputObject: JsonObject;
-        ToolCallId: Text;
-        ToolName: Text;
-        ArgumentsText: Text;
-        ResultText: Text;
-        IsError: Boolean;
-        StartTime: DateTime;
-        DurationMs: Integer;
-    begin
-        ToolCallId := GetTextProperty(CallObject, 'id');
-        if not CallObject.Get('function', FunctionToken) then
-            exit;
-        FunctionObject := FunctionToken.AsObject();
-        ToolName := GetTextProperty(FunctionObject, 'name');
-        ArgumentsText := GetTextProperty(FunctionObject, 'arguments');
-
-        if ArgumentsText <> '' then
-            if not InputObject.ReadFrom(ArgumentsText) then
-                Clear(InputObject);
-
-        StartTime := CurrentDateTime();
-        ToolServer.CallTool(ToolName, InputObject, ResultText, IsError);
-        DurationMs := CurrentDateTime() - StartTime;
-
-        ToolResult.Add('role', 'tool');
-        ToolResult.Add('tool_call_id', ToolCallId);
-        ToolResult.Add('content', ResultText);
-
-        TraceEntry.Add('tool', ToolName);
-        if IsError then begin
-            TraceEntry.Add('status', 'error');
-            TraceEntry.Add('error', CopyStr(ResultText, 1, 500));
-        end else
-            TraceEntry.Add('status', 'success');
-        TraceEntry.Add('durationMs', DurationMs);
-        ToolTrace.Add(TraceEntry);
-    end;
-
-    local procedure BuildSuccessResponse(Reply: Text; ToolTrace: JsonArray; Usage: JsonObject) ResponseJson: Text
+    local procedure BuildSuccessResponse(Reply: Text; Usage: JsonObject) ResponseJson: Text
     var
         ResponseObject: JsonObject;
     begin
+        ResponseObject.Add('type', 'reply');
         ResponseObject.Add('reply', Reply);
-        if ToolTrace.Count() > 0 then
-            ResponseObject.Add('toolTrace', ToolTrace);
         if Usage.Keys().Count() > 0 then
             ResponseObject.Add('usage', Usage);
         ResponseObject.WriteTo(ResponseJson);
@@ -288,5 +322,17 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
         if Source.Get(PropertyName, Token) then
             if Token.IsValue() then
                 exit(Token.AsValue().AsText());
+    end;
+
+    local procedure InjectTableFormat(ToolName: Text; var Arguments: JsonObject)
+    var
+        FormatToken: JsonToken;
+    begin
+        if not (ToolName in ['get_records', 'get_record_ids', 'get_totals', 'find_entries',
+                             'invoke_message_type', 'get_fields', 'search_tables']) then
+            exit;
+        if Arguments.Get('format', FormatToken) then
+            exit;
+        Arguments.Add('format', 'table');
     end;
 }

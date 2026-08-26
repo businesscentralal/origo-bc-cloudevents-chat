@@ -21,7 +21,7 @@
       "id": "a629b897-7541-4562-bebb-c6122f15801c",
       "name": "Origo Cloud Events Core",
       "publisher": "Origo",
-      "version": "28.2.0.0"
+      "version": "28.2.1.0"
     }
   ],
   "internalsVisibleTo": [

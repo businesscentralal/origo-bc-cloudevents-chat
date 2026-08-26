@@ -67,6 +67,14 @@ codeunit 10035486 "CE LLM Chat Prov Impl ori" implements "MCP Chat Provider ori"
         exit(LLMChatProxy.SendChatMessage(PayloadJson));
     end;
 
+    [NonDebuggable]
+    procedure ContinueWithToolResults(ConversationState: Text; ToolResultsJson: Text): Text
+    var
+        LLMChatProxy: Codeunit "CE LLM Chat Proxy ori";
+    begin
+        exit(LLMChatProxy.ContinueWithToolResults(ConversationState, ToolResultsJson));
+    end;
+
     /// <summary>
     /// Fetches the list of models from the LLM endpoint.
     /// </summary>

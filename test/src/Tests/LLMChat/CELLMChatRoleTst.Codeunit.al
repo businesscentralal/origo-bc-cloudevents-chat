@@ -4,7 +4,7 @@ using Origo.APP.CloudEvents;
 using System.TestLibraries.Utilities;
 
 /// <summary>
-/// Tests for user setup provider resolution and provider configuration.
+/// Tests for role resolution and provider base configuration.
 /// </summary>
 codeunit 95904 "CE LLM Chat Role Tst ori"
 {
@@ -15,49 +15,102 @@ codeunit 95904 "CE LLM Chat Role Tst ori"
         Assert: Codeunit "Library Assert";
 
     [Test]
-    procedure ResolveProvider_UserSetup_ReturnsProvider()
+    procedure GetCurrentRole_DefaultRole_Resolves()
     var
+        MCPChatRole: Record "MCP Chat Role ori";
         CEUserSetup: Record "CE User Setup ori";
-        ResolvedProvider: Record "CE LLM Provider Setup ori";
         MockProvider: Codeunit "CE LLM Mock Provider ori";
-        LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        SavedRoleCode: Code[20];
     begin
-        // [GIVEN] A mock provider set on user setup
-        MockProvider.Create();
-        MockProvider.SetServiceKey('test-key');
+        // [GIVEN] Clear any user-level role assignment to test default fallback
         if CEUserSetup.Get(UserSecurityId()) then begin
-            CEUserSetup."CE LLM Provider Code ori" := MockProvider.GetCode();
+            SavedRoleCode := CEUserSetup."MCP Chat Role Code";
+            CEUserSetup."MCP Chat Role Code" := '';
             CEUserSetup.Modify();
         end;
 
-        // [WHEN] Provider is resolved
-        Assert.IsTrue(LLMChatSetup.ResolveProvider(ResolvedProvider), 'Should resolve a provider');
+        // [GIVEN] A mock role set as default
+        MockProvider.Create();
+        MockProvider.SetAsDefault();
 
-        // [THEN] It matches the mock provider
-        Assert.AreEqual(MockProvider.GetCode(), ResolvedProvider.Code, 'Resolved provider should match user setup');
+        // [WHEN] Role is resolved
+        Assert.IsTrue(ProviderBase.GetCurrentRole(MCPChatRole), 'Should resolve a role');
+
+        // [THEN] It matches the mock role
+        Assert.AreEqual(MockProvider.GetCode(), MCPChatRole.Code, 'Resolved role should match default');
 
         // [CLEANUP]
+        MockProvider.Cleanup();
         if CEUserSetup.Get(UserSecurityId()) then begin
-            CEUserSetup."CE LLM Provider Code ori" := '';
+            CEUserSetup."MCP Chat Role Code" := SavedRoleCode;
             CEUserSetup.Modify();
         end;
+    end;
+
+    [Test]
+    procedure HasServiceGate_WithConfiguredRole_ReturnsTrue()
+    var
+        MockProvider: Codeunit "CE LLM Mock Provider ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
+    begin
+        // [GIVEN] A mock role with Chat Provider set
+        MockProvider.Create();
+
+        // [WHEN/THEN] HasServiceGate returns true
+        Assert.IsTrue(ProviderBase.HasServiceGate(), 'Should return true when a role with provider exists');
+
+        // [CLEANUP]
         MockProvider.Cleanup();
     end;
 
     [Test]
-    procedure ProviderSetup_AuthType_SetsDefaults()
+    procedure GetBaseUrl_RoleOverridesDefault()
     var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
+        MCPChatRole: Record "MCP Chat Role ori";
+        MockProvider: Codeunit "CE LLM Mock Provider ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
-        // [GIVEN] A new provider record
-        ProviderSetup.Init();
-        ProviderSetup.Code := 'AUTHTEST';
+        // [GIVEN] A role with a specific Base URL
+        MockProvider.Create();
+        MockProvider.GetRecord(MCPChatRole);
 
-        // [WHEN] Auth Type is set to Bearer
-        ProviderSetup.Validate("Auth Type", ProviderSetup."Auth Type"::Bearer);
+        // [WHEN] GetBaseUrl is called with a different default
+        // [THEN] Role URL takes priority
+        Assert.AreEqual('https://mock.test.local', ProviderBase.GetBaseUrl(MCPChatRole, 'https://default.com'), 'Role URL should override default');
 
-        // [THEN] Default paths are populated
-        Assert.AreEqual('/v1/chat/completions', ProviderSetup."Chat Path", 'Chat path should default');
-        Assert.AreEqual('/v1/models', ProviderSetup."Models Path", 'Models path should default');
+        // [CLEANUP]
+        MockProvider.Cleanup();
+    end;
+
+    [Test]
+    procedure GetBaseUrl_EmptyRole_FallsBackToDefault()
+    var
+        MCPChatRole: Record "MCP Chat Role ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
+    begin
+        // [GIVEN] A role with empty Base URL
+        MCPChatRole.Init();
+
+        // [WHEN/THEN] Default URL is used
+        Assert.AreEqual('https://default.com', ProviderBase.GetBaseUrl(MCPChatRole, 'https://default.com'), 'Should fall back to default');
+    end;
+
+    [Test]
+    procedure GetModel_RoleOverridesDefault()
+    var
+        MCPChatRole: Record "MCP Chat Role ori";
+        MockProvider: Codeunit "CE LLM Mock Provider ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
+    begin
+        // [GIVEN] A role with a specific model
+        MockProvider.Create();
+        MockProvider.GetRecord(MCPChatRole);
+
+        // [WHEN/THEN] Role model takes priority
+        Assert.AreEqual('mock-model-1', ProviderBase.GetModel(MCPChatRole, 'default-model'), 'Role model should override default');
+
+        // [CLEANUP]
+        MockProvider.Cleanup();
     end;
 }

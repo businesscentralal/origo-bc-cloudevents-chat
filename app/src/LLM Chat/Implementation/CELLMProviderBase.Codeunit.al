@@ -39,6 +39,18 @@ codeunit 10035501 "CE LLM Provider Base ori"
     end;
 
     /// <summary>
+    /// Resolves the role from the card test context, falling back to GetCurrentRole.
+    /// </summary>
+    internal procedure GetRoleForTest(var MCPChatRole: Record "MCP Chat Role ori"): Boolean
+    var
+        TestCtx: Codeunit "MCP Chat Role Test Ctx ori";
+    begin
+        if TestCtx.TryGetRole(MCPChatRole) then
+            exit(true);
+        exit(GetCurrentRole(MCPChatRole));
+    end;
+
+    /// <summary>
     /// Gets the API key: tries user key first, then service key if permitted.
     /// </summary>
     [NonDebuggable]
@@ -61,9 +73,10 @@ codeunit 10035501 "CE LLM Provider Base ori"
     [NonDebuggable]
     internal procedure SaveUserApiKey(ApiKey: Text)
     begin
-        if ApiKey = '' then
-            IsolatedStorage.Delete(UserKeyPrefixTok + Format(UserSecurityId()), DataScope::Company)
-        else
+        if ApiKey = '' then begin
+            if IsolatedStorage.Contains(UserKeyPrefixTok + Format(UserSecurityId()), DataScope::Company) then
+                IsolatedStorage.Delete(UserKeyPrefixTok + Format(UserSecurityId()), DataScope::Company);
+        end else
             IsolatedStorage.Set(UserKeyPrefixTok + Format(UserSecurityId()), ApiKey, DataScope::Company);
     end;
 
@@ -73,9 +86,10 @@ codeunit 10035501 "CE LLM Provider Base ori"
     [NonDebuggable]
     internal procedure SaveServiceKey(ApiKey: Text)
     begin
-        if ApiKey = '' then
-            IsolatedStorage.Delete(ServiceKeyTok, DataScope::Company)
-        else
+        if ApiKey = '' then begin
+            if IsolatedStorage.Contains(ServiceKeyTok, DataScope::Company) then
+                IsolatedStorage.Delete(ServiceKeyTok, DataScope::Company);
+        end else
             IsolatedStorage.Set(ServiceKeyTok, ApiKey, DataScope::Company);
     end;
 

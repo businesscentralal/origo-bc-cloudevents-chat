@@ -74,7 +74,7 @@ codeunit 10035504 "CE LLM Custom Impl ori" implements "MCP Chat Role Provider or
         IdValue: Text;
         EntryNo: Integer;
     begin
-        ProviderBase.GetCurrentRole(MCPChatRole);
+        ProviderBase.GetRoleForTest(MCPChatRole);
         BaseUrl := ProviderBase.GetBaseUrl(MCPChatRole, '');
         if BaseUrl = '' then
             exit(false);
@@ -205,6 +205,33 @@ codeunit 10035504 "CE LLM Custom Impl ori" implements "MCP Chat Role Provider or
     procedure GetContextWindowChars(): Integer
     begin
         exit(80000);
+    end;
+
+    procedure GetDefaultSkillUrl(): Text
+    begin
+        exit('');
+    end;
+
+    procedure GetDefaultSkillText(): Text
+    begin
+        exit('');
+    end;
+
+    procedure TestConnection(var ErrorMessage: Text): Boolean
+    var
+        MCPChatRole: Record "MCP Chat Role ori";
+        ApiClient: Codeunit "CE LLM API Client ori";
+        BaseUrl: Text;
+        NoBaseUrlErr: Label 'No Base URL configured for this role.', Comment = 'is-IS=Engin grunnslóð stillt fyrir þetta hlutverk.';
+    begin
+        ProviderBase.GetRoleForTest(MCPChatRole);
+        BaseUrl := ProviderBase.GetBaseUrl(MCPChatRole, '');
+        if BaseUrl = '' then begin
+            ErrorMessage := NoBaseUrlErr;
+            exit(false);
+        end;
+        ApiClient.ListModelsFromEndpoint(BaseUrl + '/v1/models', AuthHeaderNameTok, ProviderBase.GetApiKey());
+        exit(true);
     end;
 
     procedure GetTokenUsage(ResponseJson: Text; var InputTokens: Integer; var OutputTokens: Integer)

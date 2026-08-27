@@ -22,6 +22,23 @@
     "95905|SendChatCompletion_ParsesResponseObject": 0,
     "95905|ListModels_ReturnsModelArray": 0,
     "95905|ListModels_ApiError_Raised": 0,
-    "95903|ListModels_WithDefaultProvider_ReturnsModels": 1
+    "95903|ListModels_WithDefaultProvider_ReturnsModels": 1,
+    "95904|GetCurrentRole_DefaultRole_Resolves": 0,
+    "95904|HasServiceGate_WithConfiguredRole_ReturnsTrue": 0,
+    "95904|GetBaseUrl_RoleOverridesDefault": 0,
+    "95904|GetBaseUrl_EmptyRole_FallsBackToDefault": 0,
+    "95904|GetModel_RoleOverridesDefault": 0,
+    "95903|GetApiKey_WithUserKey_ReturnsUserKey": 0,
+    "95903|GetApiKey_UserKeyTakesPriority": 0,
+    "95903|IsConfigured_WithKeyAndUrl_ReturnsTrue": 0,
+    "95903|IsConfigured_WithoutKey_ReturnsFalse": 1,
+    "95903|GetTimeoutMs_RoleValue_Converts": 0,
+    "95903|GetTimeoutMs_ZeroRole_UsesDefault": 0,
+    "95903|GetMaxTokens_RoleValue_Used": 0,
+    "95903|GetMaxTokens_ZeroRole_UsesDefault": 0,
+    "95906|ServiceGate_WritePermission_WithPermissionsDisabled": 0,
+    "95906|ProviderBase_HasServiceKeyPermission_WithPermissionsDisabled": 0,
+    "95906|ServiceGate_WritePermission_WithRestrictivePermissions": 0,
+    "95906|ServiceGate_Table_IsAccessible": 0
   }
 }

@@ -78,7 +78,7 @@ codeunit 10035502 "CE LLM OpenAI Impl ori" implements "MCP Chat Role Provider or
         IdValue: Text;
         EntryNo: Integer;
     begin
-        ProviderBase.GetCurrentRole(MCPChatRole);
+        ProviderBase.GetRoleForTest(MCPChatRole);
         BaseUrl := ProviderBase.GetBaseUrl(MCPChatRole, DefaultBaseUrlTok);
         if BaseUrl = '' then
             exit(false);
@@ -209,6 +209,38 @@ codeunit 10035502 "CE LLM OpenAI Impl ori" implements "MCP Chat Role Provider or
     procedure GetContextWindowChars(): Integer
     begin
         exit(80000);
+    end;
+
+    procedure GetDefaultSkillUrl(): Text
+    begin
+        exit('');
+    end;
+
+    procedure GetDefaultSkillText(): Text
+    begin
+        exit('');
+    end;
+
+    procedure TestConnection(var ErrorMessage: Text): Boolean
+    var
+        MCPChatRole: Record "MCP Chat Role ori";
+        ApiClient: Codeunit "CE LLM API Client ori";
+        BaseUrl: Text;
+        NoKeyErr: Label 'No API key configured. Enter a personal or shared API key.', Comment = 'is-IS=Enginn API-lykill stilltur. Sláðu inn persónulegan eða sameiginlegan API-lykil.';
+        NoBaseUrlErr: Label 'No Base URL configured for this role.', Comment = 'is-IS=Engin grunnslóð stillt fyrir þetta hlutverk.';
+    begin
+        if ProviderBase.GetApiKey() = '' then begin
+            ErrorMessage := NoKeyErr;
+            exit(false);
+        end;
+        ProviderBase.GetRoleForTest(MCPChatRole);
+        BaseUrl := ProviderBase.GetBaseUrl(MCPChatRole, DefaultBaseUrlTok);
+        if BaseUrl = '' then begin
+            ErrorMessage := NoBaseUrlErr;
+            exit(false);
+        end;
+        ApiClient.ListModelsFromEndpoint(BaseUrl + '/v1/models', AuthHeaderNameTok, ProviderBase.GetApiKey());
+        exit(true);
     end;
 
     procedure GetTokenUsage(ResponseJson: Text; var InputTokens: Integer; var OutputTokens: Integer)

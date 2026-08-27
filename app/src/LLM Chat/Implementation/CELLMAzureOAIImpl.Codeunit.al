@@ -181,6 +181,32 @@ codeunit 10035503 "CE LLM Azure OAI Impl ori" implements "MCP Chat Role Provider
         exit(80000);
     end;
 
+    procedure GetDefaultSkillUrl(): Text
+    begin
+        exit('');
+    end;
+
+    procedure GetDefaultSkillText(): Text
+    begin
+        exit('');
+    end;
+
+    procedure TestConnection(var ErrorMessage: Text): Boolean
+    var
+        NoKeyErr: Label 'No API key configured. Enter a personal or shared API key.', Comment = 'is-IS=Enginn API-lykill stilltur. Sláðu inn persónulegan eða sameiginlegan API-lykil.';
+        NoBaseUrlErr: Label 'No Base URL configured for this role. Set the Azure OpenAI endpoint URL.', Comment = 'is-IS=Engin grunnslóð stillt fyrir þetta hlutverk. Stilltu Azure OpenAI endapunktsslóðina.';
+    begin
+        if ProviderBase.GetApiKey() = '' then begin
+            ErrorMessage := NoKeyErr;
+            exit(false);
+        end;
+        if not ProviderBase.IsConfigured('') then begin
+            ErrorMessage := NoBaseUrlErr;
+            exit(false);
+        end;
+        exit(true);
+    end;
+
     procedure GetTokenUsage(ResponseJson: Text; var InputTokens: Integer; var OutputTokens: Integer)
     begin
         ProviderBase.ParseTokenUsage(ResponseJson, InputTokens, OutputTokens);

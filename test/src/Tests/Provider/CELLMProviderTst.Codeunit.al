@@ -3,6 +3,9 @@ namespace Origo.APP.CloudEvents.LLM;
 using Origo.APP.CloudEvents;
 using System.TestLibraries.Utilities;
 
+/// <summary>
+/// Tests for API key management via ProviderBase.
+/// </summary>
 codeunit 95903 "CE LLM Provider Tst ori"
 {
     Subtype = Test;
@@ -11,192 +14,136 @@ codeunit 95903 "CE LLM Provider Tst ori"
     var
         Assert: Codeunit "Library Assert";
         MockProvider: Codeunit "CE LLM Mock Provider ori";
-        AIHandler: Codeunit "CE LLM AI Handler ori";
         IsInitialized: Boolean;
 
     local procedure Initialize()
+    var
+        CEUserSetup: Record "CE User Setup ori";
     begin
         if IsInitialized then
             exit;
+        // Clear user-level role to ensure default role resolution
+        if CEUserSetup.Get(UserSecurityId()) then begin
+            CEUserSetup."MCP Chat Role Code" := '';
+            CEUserSetup.Modify();
+        end;
         MockProvider.Create();
         MockProvider.SetServiceKey('test-key-12345');
         MockProvider.SetAsDefault();
-        if not TryBind() then; // already bound by another test codeunit
         IsInitialized := true;
     end;
 
-    [TryFunction]
-    local procedure TryBind()
-    begin
-        BindSubscription(AIHandler);
-    end;
-
     [Test]
-    procedure ProviderSetup_HasApiKey_WithServiceKey()
+    procedure GetApiKey_WithUserKey_ReturnsUserKey()
     var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
-        // [GIVEN] A mock provider with a service key
-        Initialize();
-
-        // [WHEN] We check HasApiKey
-        MockProvider.GetRecord(ProviderSetup);
-
-        // [THEN] It reports true (gated access)
-        Assert.IsTrue(ProviderSetup.HasApiKey(), 'Expected HasApiKey = true with service key');
-    end;
-
-    [Test]
-    procedure ProviderSetup_HasApiKey_WithUserKey()
-    var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
-    begin
-        // [GIVEN] A mock provider with a per-user key
+        // [GIVEN] A mock role with a per-user key
         Initialize();
         MockProvider.SetUserKey('user-key-abc');
 
-        // [WHEN] We check HasApiKey
-        MockProvider.GetRecord(ProviderSetup);
-
-        // [THEN] It reports true
-        Assert.IsTrue(ProviderSetup.HasApiKey(), 'Expected HasApiKey = true with user key');
+        // [WHEN/THEN] GetApiKey returns the user key
+        Assert.AreEqual('user-key-abc', ProviderBase.GetApiKey(), 'Should return user key');
 
         // [CLEANUP]
         MockProvider.SetUserKey('');
     end;
 
     [Test]
-    procedure ProviderSetup_GetApiKey_UserKeyTakesPriority()
+    procedure GetApiKey_UserKeyTakesPriority()
     var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
-        RetrievedKey: Text;
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
-        // [GIVEN] A provider with both user and service keys
+        // [GIVEN] Both user and service keys exist
         Initialize();
         MockProvider.SetUserKey('user-key-priority');
 
-        // [WHEN] We get the API key
-        MockProvider.GetRecord(ProviderSetup);
-        RetrievedKey := ProviderSetup.GetApiKey();
-
-        // [THEN] The user key is returned (takes priority over service key)
-        Assert.AreEqual('user-key-priority', RetrievedKey, 'User key should take priority');
+        // [WHEN/THEN] User key takes priority
+        Assert.AreEqual('user-key-priority', ProviderBase.GetApiKey(), 'User key should take priority over service key');
 
         // [CLEANUP]
         MockProvider.SetUserKey('');
     end;
 
     [Test]
-    procedure ProviderSetup_GetChatUrl_BuildsCorrectly()
+    procedure IsConfigured_WithKeyAndUrl_ReturnsTrue()
     var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
-        // [GIVEN] A provider with base URL and chat path
+        // [GIVEN] A configured role with service key and base URL
         Initialize();
-        MockProvider.GetRecord(ProviderSetup);
 
-        // [THEN] GetChatUrl combines them
-        Assert.AreEqual(
-            'https://mock.test.local/v1/chat/completions',
-            ProviderSetup.GetChatUrl(),
-            'Chat URL should be base + path');
+        // [WHEN/THEN] IsConfigured returns true
+        Assert.IsTrue(ProviderBase.IsConfigured(''), 'Should be configured with key and URL');
     end;
 
     [Test]
-    procedure ProviderSetup_GetModelsUrl_BuildsCorrectly()
+    procedure IsConfigured_WithoutKey_ReturnsFalse()
     var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
-        // [GIVEN] A provider with base URL and models path
-        Initialize();
-        MockProvider.GetRecord(ProviderSetup);
+        // [GIVEN] No keys stored (fresh state, no Initialize)
+        ProviderBase.SaveUserApiKey('');
+        ProviderBase.SaveServiceKey('');
 
-        // [THEN] GetModelsUrl combines them
-        Assert.AreEqual(
-            'https://mock.test.local/v1/models',
-            ProviderSetup.GetModelsUrl(),
-            'Models URL should be base + path');
+        // [WHEN/THEN] IsConfigured returns false without any key
+        Assert.IsFalse(ProviderBase.IsConfigured('https://mock.test.local'), 'Should not be configured without key');
+
+        // [CLEANUP] — restore for other tests
+        ProviderBase.SaveServiceKey('test-key-12345');
     end;
 
     [Test]
-    procedure ProviderSetup_BaseUrl_TrailingSlashRemoved()
+    procedure GetTimeoutMs_RoleValue_Converts()
     var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
+        MCPChatRole: Record "MCP Chat Role ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
-        // [GIVEN] A provider
+        // [GIVEN] A role with timeout = 60 seconds
         Initialize();
-        MockProvider.GetRecord(ProviderSetup);
+        MockProvider.GetRecord(MCPChatRole);
 
-        // [WHEN] Base URL is set with trailing slash
-        ProviderSetup.Validate("Base URL", 'https://api.example.com/');
-
-        // [THEN] Trailing slash is removed
-        Assert.AreEqual('https://api.example.com', ProviderSetup."Base URL", 'Trailing slash should be removed');
+        // [WHEN/THEN] GetTimeoutMs returns milliseconds
+        Assert.AreEqual(60000, ProviderBase.GetTimeoutMs(MCPChatRole, 120), 'Should convert 60s to 60000ms');
     end;
 
     [Test]
-    procedure ProviderList_ReturnsEnabledProviders()
+    procedure GetTimeoutMs_ZeroRole_UsesDefault()
     var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
+        MCPChatRole: Record "MCP Chat Role ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
-        // [GIVEN] A mock provider that is enabled
-        Initialize();
-        MockProvider.GetRecord(ProviderSetup);
+        // [GIVEN] A role with timeout = 0
+        MCPChatRole.Init();
 
-        // [THEN] It appears in the enabled list
-        ProviderSetup.SetRange(Enabled, true);
-        ProviderSetup.SetRange(Code, MockProvider.GetCode());
-        Assert.RecordIsNotEmpty(ProviderSetup);
+        // [WHEN/THEN] Default is used
+        Assert.AreEqual(120000, ProviderBase.GetTimeoutMs(MCPChatRole, 120), 'Should use default 120s = 120000ms');
     end;
 
     [Test]
-    procedure ProviderSetup_DisabledProvider_NotInEnabledFilter()
+    procedure GetMaxTokens_RoleValue_Used()
     var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
+        MCPChatRole: Record "MCP Chat Role ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
-        // [GIVEN] A mock provider
+        // [GIVEN] A role with max tokens = 2048
         Initialize();
-        MockProvider.GetRecord(ProviderSetup);
+        MockProvider.GetRecord(MCPChatRole);
 
-        // [WHEN] We disable it
-        ProviderSetup.Enabled := false;
-        ProviderSetup.Modify();
-
-        // [THEN] It doesn't appear in enabled filter
-        ProviderSetup.SetRange(Enabled, true);
-        ProviderSetup.SetRange(Code, MockProvider.GetCode());
-        Assert.RecordIsEmpty(ProviderSetup);
-
-        // [CLEANUP]
-        ProviderSetup.SetRange(Enabled);
-        ProviderSetup.Get(MockProvider.GetCode());
-        ProviderSetup.Enabled := true;
-        ProviderSetup.Modify();
+        // [WHEN/THEN] Role value is used
+        Assert.AreEqual(2048, ProviderBase.GetMaxTokens(MCPChatRole, 4096), 'Should use role value');
     end;
 
     [Test]
-    procedure ProviderSetup_ResolveModel_UsesRequestedModel()
+    procedure GetMaxTokens_ZeroRole_UsesDefault()
     var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
+        MCPChatRole: Record "MCP Chat Role ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
-        // [GIVEN] A provider with default model
-        Initialize();
-        MockProvider.GetRecord(ProviderSetup);
+        // [GIVEN] A role with max tokens = 0
+        MCPChatRole.Init();
 
-        // [THEN] Requested model takes priority over default
-        Assert.AreEqual('gpt-4o', ProviderSetup.ResolveModel('gpt-4o'), 'Should use requested model');
-    end;
-
-    [Test]
-    procedure ProviderSetup_ResolveModel_FallsBackToDefault()
-    var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
-    begin
-        // [GIVEN] A provider with default model 'mock-model-1'
-        Initialize();
-        MockProvider.GetRecord(ProviderSetup);
-
-        // [THEN] Empty request falls back to default
-        Assert.AreEqual('mock-model-1', ProviderSetup.ResolveModel(''), 'Should fall back to default model');
+        // [WHEN/THEN] Default is used
+        Assert.AreEqual(4096, ProviderBase.GetMaxTokens(MCPChatRole, 4096), 'Should use default');
     end;
 }

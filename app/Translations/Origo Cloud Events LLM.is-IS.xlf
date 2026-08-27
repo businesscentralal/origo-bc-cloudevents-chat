@@ -3,84 +3,6 @@
   <file datatype="xml" source-language="en-US" target-language="is-IS" original="Origo Cloud Events LLM.g.xlf">
     <body>
       <group id="body">
-        <trans-unit id="Table 1321352339 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>LLM Provider Setup</source>
-          <target>Uppsetning LLM veitu</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Uppsetning LLM veitu</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Table CE LLM Provider Setup ori - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Table 1321352339 - NamedType 473863483" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Base URL must use https:// or http:// scheme.</source>
-          <target>Grunnvefslóð verður að nota https:// eða http:// skema.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Grunnvefslóð verður að nota https:// eða http:// skema.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Table CE LLM Provider Setup ori - NamedType InvalidSchemeErr</note>
-        </trans-unit>
-        <trans-unit id="Table 1321352339 - NamedType 166204129" size-unit="char" translate="yes" xml:space="preserve">
-          <source>'%1' is not a valid URL. Include the scheme (e.g. https://api.openai.com).</source>
-          <target>'%1' er ekki gild vefslóð. Hafðu skemað með (t.d. https://api.openai.com).</target>
-          <note from="Developer" annotates="general" priority="2">%1 = url, is-IS='%1' er ekki gild vefslóð. Hafðu skemað með (t.d. https://api.openai.com).</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Table CE LLM Provider Setup ori - NamedType InvalidUrlErr</note>
-        </trans-unit>
-        <trans-unit id="Table 1321352339 - Field 2722158932 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Auth Type</source>
-          <target>Auðkenningartegund</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Auðkenningartegund</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Table CE LLM Provider Setup ori - Field Auth Type - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Table 1321352339 - Field 2517242498 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Base URL</source>
-          <target>Grunnvefslóð</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Grunnvefslóð</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Table CE LLM Provider Setup ori - Field Base URL - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Table 1321352339 - Field 1989412485 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Chat Completions Path</source>
-          <target>Spjallslóð</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Spjallslóð</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Table CE LLM Provider Setup ori - Field Chat Path - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Table 1321352339 - Field 3004954119 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Code</source>
-          <target>Kóði</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Kóði</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Table CE LLM Provider Setup ori - Field Code - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Table 1321352339 - Field 3648132104 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Default Model</source>
-          <target>Sjálfgefið líkan</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Sjálfgefið líkan</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Table CE LLM Provider Setup ori - Field Default Model - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Table 1321352339 - Field 2891538263 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Enabled</source>
-          <target>Virkt</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Virkt</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Table CE LLM Provider Setup ori - Field Enabled - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Table 1321352339 - Field 3898104680 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Max Output Tokens</source>
-          <target>Hámarks úttaksmerki</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Hámarks úttaksmerki</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Table CE LLM Provider Setup ori - Field Max Tokens - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Table 1321352339 - Field 2666083659 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Models Path</source>
-          <target>Líkanslóð</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Líkanslóð</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Table CE LLM Provider Setup ori - Field Models Path - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Table 1321352339 - Field 2961552353 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Name</source>
-          <target>Heiti</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Heiti</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Table CE LLM Provider Setup ori - Field Name - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Table 1321352339 - Field 699746556 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Timeout (seconds)</source>
-          <target>Tímamörk (sekúndur)</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tímamörk (sekúndur)</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Table CE LLM Provider Setup ori - Field Timeout Seconds - Property Caption</note>
-        </trans-unit>
         <trans-unit id="Table 977258191 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>LLM Service Gate</source>
           <target>LLM þjónustuhlið</target>
@@ -111,125 +33,47 @@
           <note from="Developer" annotates="general" priority="2">is-IS=Ógilt svar barst frá LLM API.</note>
           <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM API Client ori - NamedType InvalidResponseErr</note>
         </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 1415688405" size-unit="char" translate="yes" xml:space="preserve">
-          <source>LLM Console</source>
-          <target>LLM-stjórnborð</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=LLM-stjórnborð</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType ApiKeyDocsLinkTextLbl</note>
+        <trans-unit id="Codeunit 2871599739 - NamedType 1415688405" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Azure Portal</source>
+          <target>Azure Portal</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=Azure Portal</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Azure OAI Impl ori - NamedType ApiKeyDocsLinkTextLbl</note>
         </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 1651073791" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Enter your LLM API key to enable chat.</source>
-          <target>Sláðu inn LLM API-lykilinn þinn til að virkja spjall.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Sláðu inn LLM API-lykilinn þinn til að virkja spjall.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType ApiKeyInstructionLbl</note>
+        <trans-unit id="Codeunit 2871599739 - NamedType 1651073791" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Enter your Azure OpenAI deployment API key.</source>
+          <target>Sláðu inn Azure OpenAI API-lykilinn þinn.</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=Sláðu inn Azure OpenAI API-lykilinn þinn.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Azure OAI Impl ori - NamedType ApiKeyInstructionLbl</note>
         </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 3555061704" size-unit="char" translate="yes" xml:space="preserve">
-          <source>LLM API Key Required</source>
-          <target>LLM API-lykils krafist</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=LLM API-lykils krafist</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType ApiKeyRequiredLbl</note>
+        <trans-unit id="Codeunit 2871599739 - NamedType 2386369997" size-unit="char" translate="yes" xml:space="preserve">
+          <source>API Key</source>
+          <target>API-lykill</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=API-lykill</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Azure OAI Impl ori - NamedType ApiKeyLabelLbl</note>
         </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 3732764620" size-unit="char" translate="yes" xml:space="preserve">
-          <source>API key saved. You can now chat.</source>
-          <target>API-lykill vistaður. Þú getur nú spjallað.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=API-lykill vistaður. Þú getur nú spjallað.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType ApiKeySavedLbl</note>
+        <trans-unit id="Codeunit 2871599739 - NamedType 2496366635" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Shared keys are used by all users in this company who do not have a personal key.</source>
+          <target>Sameiginlegir lyklar eru notaðir af öllum notendum í þessu fyrirtæki sem hafa ekki persónulegan lykil.</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=Sameiginlegir lyklar eru notaðir af öllum notendum í þessu fyrirtæki sem hafa ekki persónulegan lykil.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Azure OAI Impl ori - NamedType ServiceKeyDescLbl</note>
         </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 3421364546" size-unit="char" translate="yes" xml:space="preserve">
-          <source>LLM Chat requires HTTP access. Enable "Allow HttpClient Requests" for this extension?</source>
-          <target>LLM-spjall þarf HTTP-aðgang. Virkja "Allow HttpClient Requests" fyrir þessa viðbót?</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=LLM-spjall þarf HTTP-aðgang. Virkja "Allow HttpClient Requests" fyrir þessa viðbót?</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType EnableHttpClientQst</note>
+        <trans-unit id="Codeunit 3419224160 - NamedType 1651073791" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Enter the API key for your LLM endpoint.</source>
+          <target>Sláðu inn API-lykilinn fyrir LLM endapunktinn þinn.</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=Sláðu inn API-lykilinn fyrir LLM endapunktinn þinn.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Custom Impl ori - NamedType ApiKeyInstructionLbl</note>
         </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 861282560" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Failed to parse response.</source>
-          <target>Gat ekki lesið svar.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Gat ekki lesið svar.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType FailedToParseResponseLbl</note>
+        <trans-unit id="Codeunit 3419224160 - NamedType 2386369997" size-unit="char" translate="yes" xml:space="preserve">
+          <source>API Key</source>
+          <target>API-lykill</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=API-lykill</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Custom Impl ori - NamedType ApiKeyLabelLbl</note>
         </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 3098192488" size-unit="char" translate="yes" xml:space="preserve">
-          <source>LLM Chat requires "Allow HttpClient Requests" to be enabled for this extension. Contact your administrator.</source>
-          <target>LLM-spjall krefst þess að "Allow HttpClient Requests" sé virkt fyrir þessa viðbót. Hafðu samband við kerfisstjóra.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=LLM-spjall krefst þess að "Allow HttpClient Requests" sé virkt fyrir þessa viðbót. Hafðu samband við kerfisstjóra.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType HttpClientBlockedErr</note>
-        </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 792630097" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Ask about your Business Central data...</source>
-          <target>Spurðu um Business Central gögnin þín...</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Spurðu um Business Central gögnin þín...</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType InputPlaceholderLbl</note>
-        </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 3880966341" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Invalid response format.</source>
-          <target>Ógilt svarsnið.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Ógilt svarsnið.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType InvalidResponseFormatLbl</note>
-        </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 3548289367" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Loading skill reference...</source>
-          <target>Hleð færniviðmiðum...</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Hleð færniviðmiðum...</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType LoadingSkillLbl</note>
-        </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 1690671280" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Click the Connect action above to sign in to the MCP server.</source>
-          <target>Smelltu á Tengjast aðgerðina hér að ofan til að skrá þig inn á MCP-þjóninn.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Smelltu á Tengjast aðgerðina hér að ofan til að skrá þig inn á MCP-þjóninn.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType McpAuthInstructionLbl</note>
-        </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 2069535471" size-unit="char" translate="yes" xml:space="preserve">
-          <source>MCP Connection Required</source>
-          <target>MCP-tenging nauðsynleg</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=MCP-tenging nauðsynleg</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType McpAuthRequiredLbl</note>
-        </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 2779013139" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Connection failed.</source>
-          <target>Tenging mistókst.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tenging mistókst.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType McpConnectFailedLbl</note>
-        </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 782578542" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Connecting...</source>
-          <target>Tengist...</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tengist...</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType McpConnectingLbl</note>
-        </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 3132374358" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Connect</source>
-          <target>Tengjast</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tengjast</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType McpConnectLbl</note>
-        </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 1578477536" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Ready to chat.</source>
-          <target>Tilbúið til spjalls.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilbúið til spjalls.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType ReadyToChatLbl</note>
-        </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 3892345080" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Save Key</source>
-          <target>Vista lykil</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Vista lykil</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType SaveKeyLbl</note>
-        </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 61357386" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Send</source>
-          <target>Senda</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Senda</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType SendBtnLbl</note>
-        </trans-unit>
-        <trans-unit id="Codeunit 219893034 - NamedType 3128834846" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Thinking...</source>
-          <target>Hugsar...</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Hugsar...</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - NamedType ThinkingLbl</note>
-        </trans-unit>
-        <trans-unit id="Codeunit 219893034 - Method 1435688108 - NamedType 1133441294" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Access denied: missing 'CE LLM Svc' permission set.</source>
-          <target>Aðgangur hafnaður: vantar 'CE LLM Svc' heimildasett.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Aðgangur hafnaður: vantar 'CE LLM Svc' heimildasett.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Chat Setup ori - Method AssertServiceGate - NamedType DeniedErr</note>
+        <trans-unit id="Codeunit 3419224160 - NamedType 2496366635" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Shared keys are used by all users in this company who do not have a personal key.</source>
+          <target>Sameiginlegir lyklar eru notaðir af öllum notendum í þessu fyrirtæki sem hafa ekki persónulegan lykil.</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=Sameiginlegir lyklar eru notaðir af öllum notendum í þessu fyrirtæki sem hafa ekki persónulegan lykil.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Custom Impl ori - NamedType ServiceKeyDescLbl</note>
         </trans-unit>
         <trans-unit id="Codeunit 1527677830 - NamedType 1610161594" size-unit="char" translate="yes" xml:space="preserve">
           <source>A model is required. Provide a JSON object with a "model" property. Call Provider.Model.List to get the available model ids.</source>
@@ -267,6 +111,42 @@
           <note from="Developer" annotates="general" priority="2">is-IS=Telja upp LLM líkön sem eru tiltæk á uppsettu endapunkti.</note>
           <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Model List Impl ori - Method GetDescription - NamedType DescriptionLbl</note>
         </trans-unit>
+        <trans-unit id="Codeunit 4156310429 - NamedType 1415688405" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Get key from OpenAI Platform</source>
+          <target>Sækja lykil á OpenAI Platform</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=Sækja lykil á OpenAI Platform</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM OpenAI Impl ori - NamedType ApiKeyDocsLinkTextLbl</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 4156310429 - NamedType 1651073791" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Enter your OpenAI API key.</source>
+          <target>Sláðu inn OpenAI API-lykilinn þinn.</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=Sláðu inn OpenAI API-lykilinn þinn.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM OpenAI Impl ori - NamedType ApiKeyInstructionLbl</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 4156310429 - NamedType 2386369997" size-unit="char" translate="yes" xml:space="preserve">
+          <source>API Key</source>
+          <target>API-lykill</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=API-lykill</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM OpenAI Impl ori - NamedType ApiKeyLabelLbl</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 4156310429 - NamedType 2496366635" size-unit="char" translate="yes" xml:space="preserve">
+          <source>Shared keys are used by all users in this company who do not have a personal key.</source>
+          <target>Sameiginlegir lyklar eru notaðir af öllum notendum í þessu fyrirtæki sem hafa ekki persónulegan lykil.</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=Sameiginlegir lyklar eru notaðir af öllum notendum í þessu fyrirtæki sem hafa ekki persónulegan lykil.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM OpenAI Impl ori - NamedType ServiceKeyDescLbl</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 3601371749 - NamedType 1304087324" size-unit="char" translate="yes" xml:space="preserve">
+          <source>HttpClient calls are blocked in this environment. An administrator must allow AL HttpClient requests.</source>
+          <target>HttpClient köll eru lokuð í þessu umhverfi. Stjórnandi þarf að leyfa AL HttpClient beiðnir.</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=HttpClient köll eru lokuð í þessu umhverfi. Stjórnandi þarf að leyfa AL HttpClient beiðnir.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Provider Base ori - NamedType HttpClientBlockedMsg</note>
+        </trans-unit>
+        <trans-unit id="Codeunit 3601371749 - NamedType 782499748" size-unit="char" translate="yes" xml:space="preserve">
+          <source>LLM is not configured. Set up an MCP Chat Role with a Chat Provider.</source>
+          <target>LLM er ekki uppsett. Settu upp MCP spjallhlutverk með spjallveitanda.</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=LLM er ekki uppsett. Settu upp MCP spjallhlutverk með spjallveitanda.</note>
+          <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Provider Base ori - NamedType ServiceGateDeniedErr</note>
+        </trans-unit>
         <trans-unit id="Codeunit 4121092704 - NamedType 1026491388" size-unit="char" translate="yes" xml:space="preserve">
           <source>Returns all enabled LLM providers with their codes, names, and default models.</source>
           <target>Skilar öllum virkum LLM veitum með kóðum, heitum og sjálfgefnum líkönum.</target>
@@ -279,317 +159,29 @@
           <note from="Developer" annotates="general" priority="2">%1 = tool name, is-IS=Óþekkt tól: %1</note>
           <note from="Xliff Generator" annotates="general" priority="3">Codeunit CE LLM Tool Runner ori - NamedType UnknownToolErr</note>
         </trans-unit>
-        <trans-unit id="Page 164278734 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>LLM Provider</source>
-          <target>LLM veita</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=LLM veita</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - NamedType 1388767349" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Connection successful. %1 model(s) available.</source>
-          <target>Tenging tókst. %1 líkan/líkön tiltæk.</target>
-          <note from="Developer" annotates="general" priority="2">%1 = count, is-IS=Tenging tókst. %1 líkan/líkön tiltæk.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - NamedType ConnectionOkMsg</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - NamedType 3051168133" size-unit="char" translate="yes" xml:space="preserve">
-          <source>No API key available for this provider. Set a personal key or a service key before testing.</source>
-          <target>Enginn API-lykill tiltækur fyrir þessa veitu. Stilltu persónulegan lykil eða þjónustulykil áður en þú prófar.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Enginn API-lykill tiltækur fyrir þessa veitu. Stilltu persónulegan lykil eða þjónustulykil áður en þú prófar.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - NamedType NoApiKeyErr</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 486669812 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Authentication</source>
-          <target>Auðkenning</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Auðkenning</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control Authentication - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 4039690134 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Indicates whether a shared service API key is stored for this provider.</source>
-          <target>Gefur til kynna hvort sameiginlegur þjónustulykill sé geymdur.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Gefur til kynna hvort sameiginlegur þjónustulykill sé geymdur.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control HasServiceKeyField - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 4039690134 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Service Key Stored</source>
-          <target>Þjónustulykill geymdur</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Þjónustulykill geymdur</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control HasServiceKeyField - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 720445574 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies the shared API key for this provider. Gated by the CE LLM Svc permission set.</source>
-          <target>Tilgreinir sameiginlegan API-lykil fyrir þessa veitu.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir sameiginlegan API-lykil fyrir þessa veitu.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control ServiceApiKey - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 720445574 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Service API Key</source>
-          <target>Þjónustulykill</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Þjónustulykill</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control ServiceApiKey - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 1735060826 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Connection</source>
-          <target>Tenging</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tenging</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control Connection - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 2722158932 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies how the API key is sent: x-api-key header (reverse proxy), Bearer token (OpenAI-compatible), or api-key header (Azure).</source>
-          <target>Tilgreinir hvernig API-lykillinn er sendur.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir hvernig API-lykillinn er sendur.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control Auth Type - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 2517242498 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies the base URL for the LLM API (e.g. https://api.openai.com). The chat path is appended automatically.</source>
-          <target>Tilgreinir grunnvefslóð LLM API. Spjallslóðin er bætt við sjálfkrafa.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir grunnvefslóð LLM API. Spjallslóðin er bætt við sjálfkrafa.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control Base URL - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 1989412485 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies the path appended to the base URL for chat completions. Default: /v1/chat/completions.</source>
-          <target>Tilgreinir slóðina sem bætt er við grunnvefslóð fyrir spjallsvörun.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir slóðina sem bætt er við grunnvefslóð fyrir spjallsvörun.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control Chat Path - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 2666083659 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies the path for listing available models. Default: /v1/models.</source>
-          <target>Tilgreinir slóðina til að birta tiltæk líkön.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir slóðina til að birta tiltæk líkön.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control Models Path - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 2445482498 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>General</source>
-          <target>Almennt</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Almennt</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control General - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 3004954119 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies the unique code for this provider (e.g. OLLAMA, OPENAI, GROK).</source>
-          <target>Tilgreinir einkvæman kóða fyrir þessa veitu.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir einkvæman kóða fyrir þessa veitu.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control Code - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 2891538263 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies whether this provider is available for selection.</source>
-          <target>Tilgreinir hvort þessi veita sé tiltæk til vals.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir hvort þessi veita sé tiltæk til vals.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control Enabled - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 2961552353 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies the display name for this provider.</source>
-          <target>Tilgreinir birtingarheiti veitunnar.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir birtingarheiti veitunnar.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control Name - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 1695122201 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Model</source>
-          <target>Líkan</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Líkan</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control Model - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 3648132104 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies the default model for this provider. Used when no model is specified on the Chat Role.</source>
-          <target>Tilgreinir sjálfgefið líkan þessarar veitu.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir sjálfgefið líkan þessarar veitu.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control Default Model - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 3898104680 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies the maximum output tokens per API call. Default: 4096.</source>
-          <target>Tilgreinir hámarksfjölda úttaksmerkja.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir hámarksfjölda úttaksmerkja.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control Max Tokens - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Control 699746556 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies the HTTP timeout in seconds. Default: 300 (5 minutes).</source>
-          <target>Tilgreinir HTTP tímamörk í sekúndum.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir HTTP tímamörk í sekúndum.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Control Timeout Seconds - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Action 4263468516 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Tests connectivity by calling the models endpoint using your credentials.</source>
-          <target>Prófar tengingu með því að kalla á líkanaendapunkt með þínum aðgangsupplýsingum.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Prófar tengingu með því að kalla á líkanaendapunkt með þínum aðgangsupplýsingum.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Action TestConnection - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 164278734 - Action 4263468516 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Test Connection</source>
-          <target>Prófa tengingu</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Prófa tengingu</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider Card ori - Action TestConnection - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Page 2881289064 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>LLM Providers</source>
-          <target>LLM veitur</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=LLM veitur</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider List ori - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Page 2881289064 - Control 2722158932 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies the authentication type.</source>
-          <target>Tilgreinir auðkenningartegund.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir auðkenningartegund.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider List ori - Control Auth Type - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 2881289064 - Control 2517242498 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies the API base URL.</source>
-          <target>Tilgreinir API grunnvefslóð.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir API grunnvefslóð.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider List ori - Control Base URL - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 2881289064 - Control 3004954119 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies the provider code.</source>
-          <target>Tilgreinir kóða veitunnar.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir kóða veitunnar.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider List ori - Control Code - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 2881289064 - Control 3648132104 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies the default model.</source>
-          <target>Tilgreinir sjálfgefið líkan.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir sjálfgefið líkan.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider List ori - Control Default Model - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 2881289064 - Control 2891538263 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies whether this provider is active.</source>
-          <target>Tilgreinir hvort veitan sé virk.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir hvort veitan sé virk.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider List ori - Control Enabled - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="Page 2881289064 - Control 2961552353 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Specifies the provider name.</source>
-          <target>Tilgreinir heiti veitunnar.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir heiti veitunnar.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Page CE LLM Provider List ori - Control Name - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="PageExtension 2388078837 - NamedType 1687781674" size-unit="char" translate="yes" xml:space="preserve" al-object-target="PageExtension 2388078837">
-          <source>LLM API key cleared for %1.</source>
-          <target>LLM API-lykill hreinsaður fyrir %1.</target>
-          <note from="Developer" annotates="general" priority="2">%1 = provider name, is-IS=LLM API-lykill hreinsaður fyrir %1.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">PageExtension CE LLM Chat User SetEd ori - NamedType ApiKeyClearedMsg</note>
-        </trans-unit>
-        <trans-unit id="PageExtension 2388078837 - NamedType 3186046939" size-unit="char" translate="yes" xml:space="preserve" al-object-target="PageExtension 2388078837">
-          <source>No LLM provider configured. Set a provider on this user or in Cloud Events Setup.</source>
-          <target>Engin LLM veita stillt. Stilltu veitu á þessum notanda eða í Uppsetningu atburða í skýinu.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Engin LLM veita stillt. Stilltu veitu á þessum notanda eða í Uppsetningu atburða í skýinu.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">PageExtension CE LLM Chat User SetEd ori - NamedType NoProviderMsg</note>
-        </trans-unit>
-        <trans-unit id="PageExtension 2388078837 - Action 882978444 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 2286898487">
-          <source>Removes the stored LLM API key for the selected provider.</source>
-          <target>Fjarlægir vistaðan LLM API-lykil fyrir valda veitu.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Fjarlægir vistaðan LLM API-lykil fyrir valda veitu.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">PageExtension CE LLM Chat User SetEd ori - Action ori_ClearLLMApiKey - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="PageExtension 2388078837 - Action 882978444 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 2286898487">
-          <source>Clear LLM API Key</source>
-          <target>Hreinsa LLM API-lykil</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Hreinsa LLM API-lykil</note>
-          <note from="Xliff Generator" annotates="general" priority="3">PageExtension CE LLM Chat User SetEd ori - Action ori_ClearLLMApiKey - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="PageExtension 2388078837 - Control 645799424 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 2286898487">
-          <source>LLM Chat</source>
-          <target>LLM-spjall</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=LLM-spjall</note>
-          <note from="Xliff Generator" annotates="general" priority="3">PageExtension CE LLM Chat User SetEd ori - Control ori_LLMChatStatus - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="PageExtension 2388078837 - Control 3132665418 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 2286898487">
-          <source>Indicates whether this user has an LLM API key configured.</source>
-          <target>Gefur til kynna hvort notandinn sé með LLM API lykil stilltan.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Gefur til kynna hvort notandinn sé með LLM API lykil stilltan.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">PageExtension CE LLM Chat User SetEd ori - Control ori_HasApiKey - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="PageExtension 2388078837 - Control 3132665418 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 2286898487">
-          <source>LLM API Key</source>
-          <target>LLM API lykill</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=LLM API lykill</note>
-          <note from="Xliff Generator" annotates="general" priority="3">PageExtension CE LLM Chat User SetEd ori - Control ori_HasApiKey - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="PageExtension 2388078837 - Control 386809777 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 2286898487">
-          <source>Specifies the default LLM provider for this user. Overrides the global default but is overridden by the Chat Role provider.</source>
-          <target>Tilgreinir sjálfgefna LLM veitu fyrir þennan notanda. Hnekkir almennu sjálfgefnu en er hnekkt af veitu spjallhlutverksins.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir sjálfgefna LLM veitu fyrir þennan notanda. Hnekkir almennu sjálfgefnu en er hnekkt af veitu spjallhlutverksins.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">PageExtension CE LLM Chat User SetEd ori - Control ori_LLMProvider - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="PageExtension 2111169716 - NamedType 117150238" size-unit="char" translate="yes" xml:space="preserve" al-object-target="PageExtension 2111169716">
-          <source>Open Extension Settings</source>
-          <target>Opna stillingar viðbótar</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Opna stillingar viðbótar</note>
-          <note from="Xliff Generator" annotates="general" priority="3">PageExtension CE LLM Setup ori - NamedType EnableHttpClientLbl</note>
-        </trans-unit>
-        <trans-unit id="PageExtension 2111169716 - NamedType 3548522468" size-unit="char" translate="yes" xml:space="preserve" al-object-target="PageExtension 2111169716">
-          <source>HTTP client requests are not enabled for the Cloud Events LLM extension. The LLM chat and model lookup will not work until an administrator enables Allow HttpClient Requests in Extension Settings.</source>
-          <target>HTTP-biðlarabeiðnir eru ekki virkar fyrir Cloud Events LLM viðbótina. LLM spjall og líkanauppfletting virka ekki fyrr en kerfisstjóri virkjar Leyfa HttpClient-beiðnir í stillingum viðbótar.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=HTTP-biðlarabeiðnir eru ekki virkar fyrir Cloud Events LLM viðbótina. LLM spjall og líkanauppfletting virka ekki fyrr en kerfisstjóri virkjar Leyfa HttpClient-beiðnir í stillingum viðbótar.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">PageExtension CE LLM Setup ori - NamedType HttpClientDisabledMsg</note>
-        </trans-unit>
-        <trans-unit id="PageExtension 2111169716 - Action 1690050600 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 3503898303">
-          <source>Open the LLM Provider Setup to configure endpoints, authentication, and models.</source>
-          <target>Opna uppsetningu LLM veitu til að stilla endapunkta, auðkenningu og líkön.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Opna uppsetningu LLM veitu til að stilla endapunkta, auðkenningu og líkön.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">PageExtension CE LLM Setup ori - Action ori_LLMProviders - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="PageExtension 2111169716 - Action 1690050600 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 3503898303">
-          <source>LLM Providers</source>
-          <target>LLM veitur</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=LLM veitur</note>
-          <note from="Xliff Generator" annotates="general" priority="3">PageExtension CE LLM Setup ori - Action ori_LLMProviders - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="PageExtension 2111169716 - Control 640537612 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 3503898303">
-          <source>LLM Chat</source>
-          <target>LLM-spjall</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=LLM-spjall</note>
-          <note from="Xliff Generator" annotates="general" priority="3">PageExtension CE LLM Setup ori - Control ori_LLMChat - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="PageExtension 2111169716 - Control 1966024732 - Property 1295455071" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Page 3503898303">
-          <source>Specifies the default LLM provider for server-side calls and as fallback when no provider is set on User Setup.</source>
-          <target>Tilgreinir sjálfgefna LLM veitu fyrir þjónustuköll og sem varakost þegar engin veita er stillt á notandauppsetningu.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Tilgreinir sjálfgefna LLM veitu fyrir þjónustuköll og sem varakost þegar engin veita er stillt á notandauppsetningu.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">PageExtension CE LLM Setup ori - Control ori_LLMDefProvider - Property ToolTip</note>
-        </trans-unit>
-        <trans-unit id="TableExtension 2111169716 - Method 1309902991 - NamedType 3883761671" size-unit="char" translate="yes" xml:space="preserve" al-object-target="TableExtension 2111169716">
-          <source>No LLM provider configured. Set a default provider in Cloud Events Setup or on your User Setup.</source>
-          <target>Engin LLM veita stillt. Stilltu sjálfgefna veitu í Uppsetningu atburða í skýinu eða á notandauppsetningu.</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Engin LLM veita stillt. Stilltu sjálfgefna veitu í Uppsetningu atburða í skýinu eða á notandauppsetningu.</note>
-          <note from="Xliff Generator" annotates="general" priority="3">TableExtension CE LLM Setup ori - Method GetLLMBaseUrl - NamedType NoProviderErr</note>
-        </trans-unit>
-        <trans-unit id="TableExtension 2111169716 - Field 4086354382 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Table 3503898303">
-          <source>Default LLM Provider</source>
-          <target>Sjálfgefin LLM veita</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Sjálfgefin LLM veita</note>
-          <note from="Xliff Generator" annotates="general" priority="3">TableExtension CE LLM Setup ori - Field CE LLM Def. Provider Code ori - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="TableExtension 3919128107 - Field 2019229773 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Table 1281334416">
-          <source>LLM Provider</source>
-          <target>LLM veita</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=LLM veita</note>
-          <note from="Xliff Generator" annotates="general" priority="3">TableExtension CE LLM User Setup ori - Field CE LLM Provider Code ori - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Enum 2191058161 - EnumValue 1691778126 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>api-key (Azure)</source>
-          <target>api-key (Azure)</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=api-key (Azure)</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Enum CE LLM Auth Type ori - EnumValue api-key - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Enum 2191058161 - EnumValue 92008829 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>Bearer (OpenAI-compatible)</source>
-          <target>Bearer (OpenAI-samhæft)</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=Bearer (OpenAI-samhæft)</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Enum CE LLM Auth Type ori - EnumValue Bearer - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="Enum 2191058161 - EnumValue 3776112041 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
-          <source>x-api-key (Reverse Proxy)</source>
-          <target>x-api-key (öfugþjónn)</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=x-api-key (öfugþjónn)</note>
-          <note from="Xliff Generator" annotates="general" priority="3">Enum CE LLM Auth Type ori - EnumValue x-api-key - Property Caption</note>
-        </trans-unit>
-        <trans-unit id="EnumExtension 3085954233 - EnumValue 2581395271 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Enum 83205464">
-          <source>LLM</source>
-          <target>LLM</target>
-          <note from="Developer" annotates="general" priority="2">is-IS=LLM</note>
-          <note from="Xliff Generator" annotates="general" priority="3">EnumExtension CE LLM MCP Chat Type ori - EnumValue LLM - Property Caption</note>
-        </trans-unit>
         <trans-unit id="EnumExtension 4198046982 - EnumValue 569925819 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Enum 4171189353">
           <source>LLM</source>
           <target>LLM</target>
           <note from="Developer" annotates="general" priority="2">is-IS=LLM</note>
           <note from="Xliff Generator" annotates="general" priority="3">EnumExtension CE LLM Request Log Type ori - EnumValue LLM ori - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="EnumExtension 1677691126 - EnumValue 1158040007 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Enum 659211351">
+          <source>Azure OpenAI</source>
+          <target>Azure OpenAI</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=Azure OpenAI</note>
+          <note from="Xliff Generator" annotates="general" priority="3">EnumExtension CE LLM Role Prov. - EnumValue Azure OpenAI - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="EnumExtension 1677691126 - EnumValue 822657922 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Enum 659211351">
+          <source>Custom LLM</source>
+          <target>Sérsniðið LLM</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=Sérsniðið LLM</note>
+          <note from="Xliff Generator" annotates="general" priority="3">EnumExtension CE LLM Role Prov. - EnumValue Custom LLM - Property Caption</note>
+        </trans-unit>
+        <trans-unit id="EnumExtension 1677691126 - EnumValue 762538288 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve" al-object-target="Enum 659211351">
+          <source>OpenAI</source>
+          <target>OpenAI</target>
+          <note from="Developer" annotates="general" priority="2">is-IS=OpenAI</note>
+          <note from="Xliff Generator" annotates="general" priority="3">EnumExtension CE LLM Role Prov. - EnumValue OpenAI - Property Caption</note>
         </trans-unit>
         <trans-unit id="PermissionSet 2715054212 - Property 2879900210" size-unit="char" translate="yes" xml:space="preserve">
           <source>Cloud Events LLM</source>

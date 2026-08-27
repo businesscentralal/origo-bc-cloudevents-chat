@@ -18,9 +18,9 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
     [NonDebuggable]
     internal procedure SendChatMessage(PayloadJson: Text; AuthHeaderName: Text; DefaultBaseUrl: Text; DefaultTimeoutSec: Integer; DefaultMaxTokens: Integer): Text
     var
+        MCPChatRole: Record "MCP Chat Role ori";
         ProviderBase: Codeunit "CE LLM Provider Base ori";
         ApiClient: Codeunit "CE LLM API Client ori";
-        MCPChatRole: Record "MCP Chat Role ori";
         PayloadObject: JsonObject;
         Messages: JsonArray;
         OpenAITools: JsonArray;
@@ -59,9 +59,9 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
     [NonDebuggable]
     internal procedure ContinueWithToolResults(ConversationState: Text; ToolResultsJson: Text; AuthHeaderName: Text; DefaultBaseUrl: Text; DefaultTimeoutSec: Integer; DefaultMaxTokens: Integer): Text
     var
+        MCPChatRole: Record "MCP Chat Role ori";
         ProviderBase: Codeunit "CE LLM Provider Base ori";
         ApiClient: Codeunit "CE LLM API Client ori";
-        MCPChatRole: Record "MCP Chat Role ori";
         StateObject: JsonObject;
         Messages: JsonArray;
         OpenAITools: JsonArray;
@@ -193,7 +193,7 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
         if ContextSkill <> '' then
             SystemPrompt += '\n\nCONTEXT SKILL:\n' + ContextSkill;
 
-        CEUserSetup.SetLoadFields("System Prompt");
+        CEUserSetup.SetLoadFields("User Security ID");
         if CEUserSetup.Get(UserSecurityId()) then begin
             UserPrompt := CEUserSetup.GetSystemPrompt();
             if UserPrompt <> '' then

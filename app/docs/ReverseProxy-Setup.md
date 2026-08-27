@@ -249,15 +249,19 @@ export OLLAMA_KEEP_ALIVE=-1
 
 ## Business Central Configuration
 
-After the reverse proxy is running:
+After the reverse proxy is running, create an MCP Chat Role:
 
 | Field | Value |
 |-------|-------|
-| **LLM Base URL** | `https://llm.yourdomain.com` |
-| **Service API Key** | The key defined in your reverse proxy config |
-| **LLM Default Model** | Use the lookup (calls `/v1/models`) |
-| **API Timeout** | 300 seconds (5 minutes) — increase for cold starts |
-| **Max Output Tokens** | 4096 (or higher for complex responses) |
+| **Code** | `OLLAMA` (or any identifier) |
+| **Description** | Ollama (Self-Hosted) |
+| **Chat Provider** | Custom LLM |
+| **Base URL** | `https://llm.yourdomain.com` |
+| **Model** | `qwen3:8b` (select from Model lookup or type directly) |
+| **Timeout Seconds** | 300 (5 minutes — increase for cold starts) |
+| **Max Tokens** | 8192 (or higher for complex responses) |
+
+Enter the API key (the key defined in your reverse proxy config) via the chat UI's API Key prompt, or save it as a shared Service Key.
 
 ---
 

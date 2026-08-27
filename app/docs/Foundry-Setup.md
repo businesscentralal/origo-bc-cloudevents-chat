@@ -72,23 +72,21 @@ az cognitiveservices account keys list `
 
 ---
 
-## Provider Configuration in Business Central
+## MCP Chat Role Configuration in Business Central
+
+Create an MCP Chat Role record with these settings:
 
 | Field | Value |
 |-------|-------|
 | Code | `FOUNDRY` (or any identifier) |
-| Name | Azure Foundry |
+| Description | Azure Foundry |
+| Chat Provider | Azure OpenAI |
 | Base URL | `https://<account-name>.openai.azure.com` |
-| Auth Type | api-key (Azure) |
-| Chat Path | `/openai/deployments/<deployment-name>/chat/completions?api-version=2024-10-21` |
-| Models Path | `/openai/models?api-version=2024-10-21` |
-| Default Model | The deployment name (e.g., `gpt-4o`) |
+| Model | The deployment name (e.g., `gpt-4o`) |
+| Timeout Seconds | 120 |
+| Max Tokens | 16384 |
 
-**Important:** Azure OpenAI uses a different URL structure than standard OpenAI:
-- The **Base URL** is the account endpoint (no deployment path)
-- The **Chat Path** includes the deployment name and `api-version` query parameter
-- The **Models Path** is at the account level (not deployment-specific)
-- Authentication uses the `api-key` header (not Bearer)
+**Important:** Azure OpenAI uses the `api-key` header for authentication (handled automatically by the Azure OpenAI Chat Provider). The extension appends `/v1/chat/completions` to the Base URL for chat requests.
 
 ---
 

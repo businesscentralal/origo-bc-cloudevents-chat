@@ -1,7 +1,7 @@
 namespace Origo.APP.CloudEvents.LLM;
 
-using Origo.APP.CloudEvents;
 using Microsoft.Utilities;
+using Origo.APP.CloudEvents;
 
 /// <summary>
 /// Custom/self-hosted LLM provider implementation using x-api-key header authentication.
@@ -53,25 +53,24 @@ codeunit 10035504 "CE LLM Custom Impl ori" implements "MCP Chat Role Provider or
     var
         LLMChatProxy: Codeunit "CE LLM Chat Proxy ori";
     begin
-        exit(LLMChatProxy.SendChatMessage(PayloadJson));
+        exit(LLMChatProxy.SendChatMessage(PayloadJson, AuthHeaderNameTok, '', 300, 8192));
     end;
 
     procedure ContinueWithToolResults(ConversationState: Text; ToolResultsJson: Text): Text
     var
         LLMChatProxy: Codeunit "CE LLM Chat Proxy ori";
     begin
-        exit(LLMChatProxy.ContinueWithToolResults(ConversationState, ToolResultsJson));
+        exit(LLMChatProxy.ContinueWithToolResults(ConversationState, ToolResultsJson, AuthHeaderNameTok, '', 300, 8192));
     end;
 
     procedure GetAvailableModels(var TempNameValueBuffer: Record "Name/Value Buffer" temporary): Boolean
     var
         MCPChatRole: Record "MCP Chat Role ori";
         ApiClient: Codeunit "CE LLM API Client ori";
-        BaseUrl: Text;
-        Response: JsonObject;
-        DataToken: JsonToken;
+        ModelsArray: JsonArray;
         ModelToken: JsonToken;
         ModelObject: JsonObject;
+        BaseUrl: Text;
         IdValue: Text;
         EntryNo: Integer;
     begin
@@ -80,11 +79,9 @@ codeunit 10035504 "CE LLM Custom Impl ori" implements "MCP Chat Role Provider or
         if BaseUrl = '' then
             exit(false);
 
-        Response := ApiClient.SendModelsRequest(BaseUrl, AuthHeaderNameTok, ProviderBase.GetApiKey());
-        if not Response.Get('data', DataToken) then
-            exit(false);
+        ModelsArray := ApiClient.ListModelsFromEndpoint(BaseUrl + '/v1/models', AuthHeaderNameTok, ProviderBase.GetApiKey());
 
-        foreach ModelToken in DataToken.AsArray() do begin
+        foreach ModelToken in ModelsArray do begin
             ModelObject := ModelToken.AsObject();
             IdValue := GetJsonText(ModelObject, 'id');
             if IdValue <> '' then begin

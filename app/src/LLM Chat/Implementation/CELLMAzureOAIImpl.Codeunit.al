@@ -1,7 +1,7 @@
 namespace Origo.APP.CloudEvents.LLM;
 
-using Origo.APP.CloudEvents;
 using Microsoft.Utilities;
+using Origo.APP.CloudEvents;
 
 /// <summary>
 /// Azure OpenAI provider implementation using api-key header authentication.
@@ -54,14 +54,14 @@ codeunit 10035503 "CE LLM Azure OAI Impl ori" implements "MCP Chat Role Provider
     var
         LLMChatProxy: Codeunit "CE LLM Chat Proxy ori";
     begin
-        exit(LLMChatProxy.SendChatMessage(PayloadJson));
+        exit(LLMChatProxy.SendChatMessage(PayloadJson, AuthHeaderNameTok, '', 120, 16384));
     end;
 
     procedure ContinueWithToolResults(ConversationState: Text; ToolResultsJson: Text): Text
     var
         LLMChatProxy: Codeunit "CE LLM Chat Proxy ori";
     begin
-        exit(LLMChatProxy.ContinueWithToolResults(ConversationState, ToolResultsJson));
+        exit(LLMChatProxy.ContinueWithToolResults(ConversationState, ToolResultsJson, AuthHeaderNameTok, '', 120, 16384));
     end;
 
     procedure GetAvailableModels(var TempNameValueBuffer: Record "Name/Value Buffer" temporary): Boolean

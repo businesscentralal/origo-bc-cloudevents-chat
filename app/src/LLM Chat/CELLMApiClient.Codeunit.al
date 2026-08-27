@@ -143,7 +143,8 @@ codeunit 10035485 "CE LLM API Client ori"
     [NonDebuggable]
     local procedure DoSendChatCompletion(RequestBody: JsonObject; ApiKey: Text) Response: JsonObject
     var
-        CloudEventsSetup: Record "Cloud Events Setup ori";
+        MCPChatRole: Record "MCP Chat Role ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
         HttpClientVar: HttpClient;
         HttpContent: HttpContent;
         HttpResponse: HttpResponseMessage;
@@ -173,11 +174,12 @@ codeunit 10035485 "CE LLM API Client ori"
         if not IsHandled then begin
             if ApiKey = '' then
                 ApiKey := GetServiceApiKey();
+            ProviderBase.GetCurrentRole(MCPChatRole);
             DefaultHeaders := HttpClientVar.DefaultRequestHeaders();
             DefaultHeaders.Add('x-api-key', ApiKey);
-            HttpClientVar.Timeout(CloudEventsSetup.GetLLMTimeoutMs());
+            HttpClientVar.Timeout(ProviderBase.GetTimeoutMs(MCPChatRole, 120));
 
-            RequestUrl := StrSubstNo(ChatEndpointTok, CloudEventsSetup.GetLLMBaseUrl());
+            RequestUrl := StrSubstNo(ChatEndpointTok, ProviderBase.GetBaseUrl(MCPChatRole, ''));
             StartTime := CurrentDateTime();
             if not HttpClientVar.Post(RequestUrl, HttpContent, HttpResponse) then begin
                 BufferLog('chat/completions', 'POST', RequestUrl, RequestText, '',
@@ -204,9 +206,9 @@ codeunit 10035485 "CE LLM API Client ori"
     [NonDebuggable]
     local procedure GetServiceApiKey(): Text
     var
-        CloudEventsSetup: Record "Cloud Events Setup ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
-        exit(CloudEventsSetup.GetLLMServiceApiKey());
+        exit(ProviderBase.GetApiKey());
     end;
 
     /// <summary>
@@ -215,7 +217,8 @@ codeunit 10035485 "CE LLM API Client ori"
     [NonDebuggable]
     procedure ListModels() Models: JsonArray
     var
-        CloudEventsSetup: Record "Cloud Events Setup ori";
+        MCPChatRole: Record "MCP Chat Role ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
         HttpClient: HttpClient;
         HttpResponse: HttpResponseMessage;
         DefaultHeaders: HttpHeaders;
@@ -237,12 +240,13 @@ codeunit 10035485 "CE LLM API Client ori"
         end;
 
         HasPendingLog := false;
-        RequestUrl := StrSubstNo(ModelsEndpointTok, CloudEventsSetup.GetLLMBaseUrl());
+        ProviderBase.GetCurrentRole(MCPChatRole);
+        RequestUrl := StrSubstNo(ModelsEndpointTok, ProviderBase.GetBaseUrl(MCPChatRole, ''));
 
         OnBeforeSendModelsRequest(RequestUrl, HttpResponse, IsHandled);
         if not IsHandled then begin
             DefaultHeaders := HttpClient.DefaultRequestHeaders();
-            DefaultHeaders.Add('x-api-key', CloudEventsSetup.GetLLMServiceApiKey());
+            DefaultHeaders.Add('x-api-key', ProviderBase.GetApiKey());
 
             StartTime := CurrentDateTime();
             if not HttpClient.Get(RequestUrl, HttpResponse) then begin
@@ -400,11 +404,13 @@ codeunit 10035485 "CE LLM API Client ori"
 
     local procedure ResolveModel(Model: Text): Text
     var
-        CloudEventsSetup: Record "Cloud Events Setup ori";
+        MCPChatRole: Record "MCP Chat Role ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
         if Model <> '' then
             exit(Model);
-        exit(CloudEventsSetup.GetLLMDefaultModel());
+        ProviderBase.GetCurrentRole(MCPChatRole);
+        exit(ProviderBase.GetModel(MCPChatRole, ''));
     end;
 
     local procedure ResolveMaxTokens(MaxTokens: Integer): Integer

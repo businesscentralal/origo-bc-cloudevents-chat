@@ -19,9 +19,9 @@ codeunit 10035493 "CE LLM Model List Impl ori" implements "Cloud Event Msg Inter
     /// </summary>
     internal procedure IsEnabled(): Boolean
     var
-        LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
-        exit(LLMChatSetup.HasServiceGate());
+        exit(ProviderBase.HasServiceGate());
     end;
 
     /// <summary>
@@ -66,9 +66,9 @@ codeunit 10035493 "CE LLM Model List Impl ori" implements "Cloud Event Msg Inter
     [NonDebuggable]
     internal procedure ExecuteCloudEventTask(var Argument: Record "CE Message Argument ori")
     var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
+        MCPChatRole: Record "MCP Chat Role ori";
         ApiClient: Codeunit "CE LLM API Client ori";
-        LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
         RequestJson: JsonObject;
         ResponseJson: JsonObject;
         ModelsJson: JsonArray;
@@ -77,7 +77,7 @@ codeunit 10035493 "CE LLM Model List Impl ori" implements "Cloud Event Msg Inter
     begin
         Argument.AssertVersion1();
         Argument.AssertIsLicensed();
-        if not LLMChatSetup.AssertServiceGate(Argument) then
+        if not ProviderBase.AssertServiceGate(Argument) then
             exit;
 
         RequestJson := Argument.GetRequestJson();
@@ -85,20 +85,18 @@ codeunit 10035493 "CE LLM Model List Impl ori" implements "Cloud Event Msg Inter
             ProviderCode := CopyStr(ProviderToken.AsValue().AsText(), 1, MaxStrLen(ProviderCode));
 
         if ProviderCode <> '' then begin
-            if not ProviderSetup.Get(ProviderCode) then begin
+            if not MCPChatRole.Get(ProviderCode) then begin
                 Argument.RespondWithError(StrSubstNo(ProviderNotFoundErr, ProviderCode));
                 exit;
             end;
-            ModelsJson := ApiClient.ListModelsForProvider(ProviderSetup);
         end else
-            if LLMChatSetup.ResolveProvider(ProviderSetup) then
-                ModelsJson := ApiClient.ListModelsForProvider(ProviderSetup)
-            else
-                ModelsJson := ApiClient.ListModels();
+            ProviderBase.GetCurrentRole(MCPChatRole);
+
+        ModelsJson := ApiClient.ListModels();
 
         ResponseJson.Add('status', 'Success');
         ResponseJson.Add('noOfRecords', ModelsJson.Count());
-        ResponseJson.Add('defaultModel', ProviderSetup."Default Model");
+        ResponseJson.Add('defaultModel', MCPChatRole.Model);
         ResponseJson.Add('result', ModelsJson);
         Argument.SetResponseJson(ResponseJson);
         Argument."Content Type" := Argument.GetContentTypeJson();

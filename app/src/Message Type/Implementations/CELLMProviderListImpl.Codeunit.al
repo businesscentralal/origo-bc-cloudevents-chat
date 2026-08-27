@@ -15,9 +15,9 @@ codeunit 10035497 "CE LLM Provider List Impl ori" implements "Cloud Event Msg In
 
     internal procedure IsEnabled(): Boolean
     var
-        LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
-        exit(LLMChatSetup.HasServiceGate());
+        exit(ProviderBase.HasServiceGate());
     end;
 
     internal procedure GetFilterTableNo(): Integer
@@ -62,29 +62,28 @@ codeunit 10035497 "CE LLM Provider List Impl ori" implements "Cloud Event Msg In
 
     internal procedure ExecuteCloudEventTask(var Argument: Record "CE Message Argument ori")
     var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
-        LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
+        MCPChatRole: Record "MCP Chat Role ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
         ResponseJson: JsonObject;
         ProvidersArray: JsonArray;
         ProviderJson: JsonObject;
     begin
         Argument.AssertVersion1();
         Argument.AssertIsLicensed();
-        if not LLMChatSetup.AssertServiceGate(Argument) then
+        if not ProviderBase.AssertServiceGate(Argument) then
             exit;
 
-        ProviderSetup.SetRange(Enabled, true);
-        if ProviderSetup.FindSet() then
+        MCPChatRole.SetFilter("Chat Provider", '<>%1', MCPChatRole."Chat Provider"::None);
+        if MCPChatRole.FindSet() then
             repeat
                 Clear(ProviderJson);
-                ProviderJson.Add('code', ProviderSetup.Code);
-                ProviderJson.Add('name', ProviderSetup.Name);
-                ProviderJson.Add('baseUrl', ProviderSetup."Base URL");
-                ProviderJson.Add('defaultModel', ProviderSetup."Default Model");
-                ProviderJson.Add('authType', Format(ProviderSetup."Auth Type"));
-                ProviderJson.Add('authenticated', ProviderSetup.HasApiKey());
+                ProviderJson.Add('code', MCPChatRole.Code);
+                ProviderJson.Add('name', MCPChatRole.Description);
+                ProviderJson.Add('baseUrl', MCPChatRole."Base URL");
+                ProviderJson.Add('defaultModel', MCPChatRole.Model);
+                ProviderJson.Add('chatProvider', Format(MCPChatRole."Chat Provider"));
                 ProvidersArray.Add(ProviderJson);
-            until ProviderSetup.Next() = 0;
+            until MCPChatRole.Next() = 0;
 
         ResponseJson.Add('status', 'Success');
         ResponseJson.Add('noOfRecords', ProvidersArray.Count());

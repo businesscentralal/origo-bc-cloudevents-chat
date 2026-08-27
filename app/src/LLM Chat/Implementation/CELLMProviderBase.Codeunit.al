@@ -16,6 +16,7 @@ codeunit 10035501 "CE LLM Provider Base ori"
         UserKeyPrefixTok: Label 'CE_LLM_Usr_', Locked = true;
         ServiceKeyTok: Label 'CE_LLM_Svc', Locked = true;
         HttpClientBlockedMsg: Label 'HttpClient calls are blocked in this environment. An administrator must allow AL HttpClient requests.', Comment = 'is-IS=HttpClient köll eru lokuð í þessu umhverfi. Stjórnandi þarf að leyfa AL HttpClient beiðnir.';
+        ServiceGateDeniedErr: Label 'LLM is not configured. Set up an MCP Chat Role with a Chat Provider.', Comment = 'is-IS=LLM er ekki uppsett. Settu upp MCP spjallhlutverk með spjallveitanda.';
 
     /// <summary>
     /// Resolves the current user's MCP Chat Role via CE User Setup fallback chain.
@@ -186,12 +187,31 @@ codeunit 10035501 "CE LLM Provider Base ori"
     end;
 
     /// <summary>
+    /// Returns whether any MCP Chat Role is configured with an external LLM provider.
+    /// </summary>
+    internal procedure HasServiceGate(): Boolean
+    var
+        MCPChatRole: Record "MCP Chat Role ori";
+    begin
+        MCPChatRole.SetFilter("Chat Provider", '<>%1', MCPChatRole."Chat Provider"::None);
+        exit(not MCPChatRole.IsEmpty());
+    end;
+
+    /// <summary>
+    /// Asserts the service gate and responds with error if no LLM provider is configured.
+    /// </summary>
+    internal procedure AssertServiceGate(var Argument: Record "CE Message Argument ori"): Boolean
+    begin
+        if HasServiceGate() then
+            exit(true);
+        Argument.RespondWithError(ServiceGateDeniedErr);
+        exit(false);
+    end;
+
+    /// <summary>
     /// Raises an error if HttpClient is not allowed in this environment.
     /// </summary>
     internal procedure EnsureHttpClientAllowed()
-    var
-        EnvironmentInfo: Codeunit "Environment Information";
-        NavApp: Codeunit "NavApp Module Info";
     begin
         if not CanSendHttpRequests() then
             Error(HttpClientBlockedMsg);

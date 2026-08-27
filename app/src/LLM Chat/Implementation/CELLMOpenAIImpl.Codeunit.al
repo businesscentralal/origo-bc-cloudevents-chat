@@ -1,7 +1,7 @@
 namespace Origo.APP.CloudEvents.LLM;
 
-using Origo.APP.CloudEvents;
 using Microsoft.Utilities;
+using Origo.APP.CloudEvents;
 
 /// <summary>
 /// OpenAI provider implementation using Bearer token authentication.
@@ -22,14 +22,6 @@ codeunit 10035502 "CE LLM OpenAI Impl ori" implements "MCP Chat Role Provider or
         ApiKeyDocsUrlTok: Label 'https://platform.openai.com/api-keys', Locked = true;
         ApiKeyDocsLinkTextLbl: Label 'Get key from OpenAI Platform', Comment = 'is-IS=Sækja lykil á OpenAI Platform';
         ServiceKeyDescLbl: Label 'Shared keys are used by all users in this company who do not have a personal key.', Comment = 'is-IS=Sameiginlegir lyklar eru notaðir af öllum notendum í þessu fyrirtæki sem hafa ekki persónulegan lykil.';
-        DefaultTimeoutSec: Integer;
-        DefaultMaxTok: Integer;
-
-    trigger OnRun()
-    begin
-        DefaultTimeoutSec := 120;
-        DefaultMaxTok := 16384;
-    end;
 
     procedure IsConfigured(): Boolean
     begin
@@ -65,25 +57,24 @@ codeunit 10035502 "CE LLM OpenAI Impl ori" implements "MCP Chat Role Provider or
     var
         LLMChatProxy: Codeunit "CE LLM Chat Proxy ori";
     begin
-        exit(LLMChatProxy.SendChatMessage(PayloadJson));
+        exit(LLMChatProxy.SendChatMessage(PayloadJson, AuthHeaderNameTok, DefaultBaseUrlTok, 120, 16384));
     end;
 
     procedure ContinueWithToolResults(ConversationState: Text; ToolResultsJson: Text): Text
     var
         LLMChatProxy: Codeunit "CE LLM Chat Proxy ori";
     begin
-        exit(LLMChatProxy.ContinueWithToolResults(ConversationState, ToolResultsJson));
+        exit(LLMChatProxy.ContinueWithToolResults(ConversationState, ToolResultsJson, AuthHeaderNameTok, DefaultBaseUrlTok, 120, 16384));
     end;
 
     procedure GetAvailableModels(var TempNameValueBuffer: Record "Name/Value Buffer" temporary): Boolean
     var
         MCPChatRole: Record "MCP Chat Role ori";
         ApiClient: Codeunit "CE LLM API Client ori";
-        BaseUrl: Text;
-        Response: JsonObject;
-        DataToken: JsonToken;
+        ModelsArray: JsonArray;
         ModelToken: JsonToken;
         ModelObject: JsonObject;
+        BaseUrl: Text;
         IdValue: Text;
         EntryNo: Integer;
     begin
@@ -92,11 +83,9 @@ codeunit 10035502 "CE LLM OpenAI Impl ori" implements "MCP Chat Role Provider or
         if BaseUrl = '' then
             exit(false);
 
-        Response := ApiClient.SendModelsRequest(BaseUrl, AuthHeaderNameTok, ProviderBase.GetApiKey());
-        if not Response.Get('data', DataToken) then
-            exit(false);
+        ModelsArray := ApiClient.ListModelsFromEndpoint(BaseUrl + '/v1/models', AuthHeaderNameTok, ProviderBase.GetApiKey());
 
-        foreach ModelToken in DataToken.AsArray() do begin
+        foreach ModelToken in ModelsArray do begin
             ModelObject := ModelToken.AsObject();
             IdValue := GetJsonText(ModelObject, 'id');
             if IdValue <> '' then begin

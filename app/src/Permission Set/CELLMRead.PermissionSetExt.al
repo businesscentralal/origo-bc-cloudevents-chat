@@ -8,7 +8,6 @@ using Origo.APP.CloudEvents;
 permissionsetextension 10035487 "CE LLM Read ori" extends "CE Read All ori"
 {
     Permissions =
-        codeunit "CE LLM Chat Setup ori" = X,
         codeunit "CE LLM Chat Proxy ori" = X,
-        codeunit "CE LLM Chat Prov Impl ori" = X;
+        codeunit "CE LLM Provider Base ori" = X;
 }

@@ -1,17 +1,29 @@
 # Provider Setup Guide
 
-This guide explains how to configure LLM providers in Business Central and where to obtain API keys for each supported service.
+This guide explains how to configure LLM providers in Business Central via **MCP Chat Roles** and where to obtain API keys for each supported service.
 
 ---
 
 ## Quick Start
 
-1. Open **Cloud Events Setup** → click **LLM Providers**
-2. Create a new provider record
-3. Fill in: Code, Name, Base URL, Auth Type, Default Model
-4. Enter the Service API Key (or let users enter their own per-user key in the chat UI)
-5. Click **Test Connection** to verify
-6. Set the provider as the **Default LLM Provider** on Cloud Events Setup
+1. Open **MCP Chat Role List** (search in BC)
+2. Create a new role record with a Code and Description
+3. Set **Chat Provider** to OpenAI, Azure OpenAI, or Custom LLM
+4. Fill in: Base URL, Model, Timeout Seconds, Max Tokens (defaults are applied when you select a provider)
+5. Enter the API Key via the chat UI, or save a shared Service Key on the role card
+6. Optionally mark the role as **Default**
+
+---
+
+## Chat Provider Types
+
+The extension registers three Chat Provider options on the Core MCP Chat Role enum:
+
+| Chat Provider | Auth Header | Default Base URL | Use For |
+| ------------- | ----------- | ---------------- | ------- |
+| **OpenAI** | `Authorization: Bearer` | `https://api.openai.com` | OpenAI, Grok, Groq, Together, Mistral, DeepSeek, and other Bearer-auth endpoints |
+| **Azure OpenAI** | `api-key` | *(must configure)* | Azure OpenAI Service deployments |
+| **Custom LLM** | `x-api-key` | *(must configure)* | Ollama, vLLM, LM Studio, or any endpoint behind a reverse proxy with x-api-key auth |
 
 ---
 
@@ -22,12 +34,12 @@ This guide explains how to configure LLM providers in Business Central and where
 | Field | Value |
 | ----- | ----- |
 | Code | `OLLAMA` |
-| Name | Ollama (Self-Hosted) |
+| Description | Ollama (Self-Hosted) |
+| Chat Provider | Custom LLM |
 | Base URL | `https://llm.yourdomain.com` |
-| Auth Type | x-api-key (Reverse Proxy) |
-| Default Model | `qwen3:8b` |
-| Chat Path | `/v1/chat/completions` |
-| Models Path | `/v1/models` |
+| Model | `qwen3:8b` |
+| Timeout Seconds | 300 |
+| Max Tokens | 8192 |
 
 **API Key:** You define this yourself in your reverse proxy configuration (Caddy, nginx, etc.). See [ReverseProxy-Setup.md](ReverseProxy-Setup.md) for details.
 
@@ -40,12 +52,10 @@ Generate a key: `openssl rand -hex 32`
 | Field | Value |
 | ----- | ----- |
 | Code | `OPENAI` |
-| Name | OpenAI |
-| Base URL | `https://api.openai.com` |
-| Auth Type | Bearer (OpenAI-compatible) |
-| Default Model | `gpt-4o` |
-| Chat Path | `/v1/chat/completions` |
-| Models Path | `/v1/models` |
+| Description | OpenAI |
+| Chat Provider | OpenAI |
+| Base URL | *(leave empty — defaults to `https://api.openai.com`)* |
+| Model | `gpt-4.1` |
 
 **API Key:** Obtain from [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
 
@@ -63,12 +73,10 @@ Generate a key: `openssl rand -hex 32`
 | Field | Value |
 | ----- | ----- |
 | Code | `GROK` |
-| Name | Grok (xAI) |
+| Description | Grok (xAI) |
+| Chat Provider | OpenAI |
 | Base URL | `https://api.x.ai` |
-| Auth Type | Bearer (OpenAI-compatible) |
-| Default Model | `grok-2` |
-| Chat Path | `/v1/chat/completions` |
-| Models Path | `/v1/models` |
+| Model | `grok-2` |
 
 **API Key:** Obtain from [console.x.ai](https://console.x.ai/)
 
@@ -86,12 +94,10 @@ Generate a key: `openssl rand -hex 32`
 | Field | Value |
 | ----- | ----- |
 | Code | `GROQ` |
-| Name | Groq |
+| Description | Groq |
+| Chat Provider | OpenAI |
 | Base URL | `https://api.groq.com/openai` |
-| Auth Type | Bearer (OpenAI-compatible) |
-| Default Model | `llama-3.1-70b-versatile` |
-| Chat Path | `/v1/chat/completions` |
-| Models Path | `/v1/models` |
+| Model | `llama-3.1-70b-versatile` |
 
 **API Key:** Obtain from [console.groq.com/keys](https://console.groq.com/keys)
 
@@ -109,12 +115,10 @@ Generate a key: `openssl rand -hex 32`
 | Field | Value |
 | ----- | ----- |
 | Code | `TOGETHER` |
-| Name | Together AI |
+| Description | Together AI |
+| Chat Provider | OpenAI |
 | Base URL | `https://api.together.xyz` |
-| Auth Type | Bearer (OpenAI-compatible) |
-| Default Model | `meta-llama/Llama-3.1-70B-Instruct-Turbo` |
-| Chat Path | `/v1/chat/completions` |
-| Models Path | `/v1/models` |
+| Model | `meta-llama/Llama-3.1-70B-Instruct-Turbo` |
 
 **API Key:** Obtain from [api.together.ai/settings/api-keys](https://api.together.ai/settings/api-keys)
 
@@ -132,12 +136,10 @@ Generate a key: `openssl rand -hex 32`
 | Field | Value |
 | ----- | ----- |
 | Code | `MISTRAL` |
-| Name | Mistral AI |
+| Description | Mistral AI |
+| Chat Provider | OpenAI |
 | Base URL | `https://api.mistral.ai` |
-| Auth Type | Bearer (OpenAI-compatible) |
-| Default Model | `mistral-large-latest` |
-| Chat Path | `/v1/chat/completions` |
-| Models Path | `/v1/models` |
+| Model | `mistral-large-latest` |
 
 **API Key:** Obtain from [console.mistral.ai/api-keys](https://console.mistral.ai/api-keys)
 
@@ -155,12 +157,10 @@ Generate a key: `openssl rand -hex 32`
 | Field | Value |
 | ----- | ----- |
 | Code | `DEEPSEEK` |
-| Name | DeepSeek |
+| Description | DeepSeek |
+| Chat Provider | OpenAI |
 | Base URL | `https://api.deepseek.com` |
-| Auth Type | Bearer (OpenAI-compatible) |
-| Default Model | `deepseek-chat` |
-| Chat Path | `/v1/chat/completions` |
-| Models Path | `/v1/models` |
+| Model | `deepseek-chat` |
 
 **API Key:** Obtain from [platform.deepseek.com/api_keys](https://platform.deepseek.com/api_keys)
 
@@ -178,12 +178,10 @@ Generate a key: `openssl rand -hex 32`
 | Field | Value |
 | ----- | ----- |
 | Code | `AZURE` |
-| Name | Azure AI Foundry |
-| Base URL | `https://{deployment}.{region}.models.ai.azure.com` |
-| Auth Type | api-key (Azure) |
-| Default Model | `gpt-4o` |
-| Chat Path | `/v1/chat/completions` |
-| Models Path | `/v1/models` |
+| Description | Azure AI Foundry |
+| Chat Provider | Azure OpenAI |
+| Base URL | `https://<account-name>.openai.azure.com` |
+| Model | *(deployment name, e.g., `gpt-4o`)* |
 
 **API Key:** Obtain from [Azure AI Foundry portal](https://ai.azure.com/)
 
@@ -193,7 +191,7 @@ Generate a key: `openssl rand -hex 32`
 4. Select your model deployment
 5. Copy the Key from the deployment details
 
-**Note:** The Base URL includes your deployment name and region. Each deployment has its own endpoint. For Azure OpenAI Service (non-MaaS), the paths differ — use a reverse proxy to normalize the URL structure if needed.
+**Note:** Azure OpenAI uses a different URL structure. The extension appends `/v1/chat/completions` to the Base URL. For standard Azure OpenAI endpoints, this works with Azure's OpenAI-compatible paths. For custom deployment paths, use a reverse proxy to normalize the URL structure.
 
 **Pricing:** Based on your Azure subscription. See [azure.microsoft.com/pricing/details/cognitive-services/openai-service](https://azure.microsoft.com/pricing/details/cognitive-services/openai-service)
 
@@ -201,19 +199,19 @@ Generate a key: `openssl rand -hex 32`
 
 ## Authentication Model
 
-Each provider supports two API key layers:
+Each Chat Provider supports two API key layers:
 
 ### Service Key (Shared, Gated)
 
-- Set on the **Provider Card** under Authentication
-- Stored in `IsolatedStorage` with Module scope (encrypted, shared across all users)
-- Only visible to users with the **CE LLM Svc** permission set
+- Saved via the provider implementation's Service Key action
+- Stored in `IsolatedStorage` with Company scope (encrypted, shared across all users)
+- Only accessible to users with the **CE LLM Svc** permission set
 - All gated users share this key — one bill, centralized management
 
 ### Per-User Key
 
 - Each user enters their own key via the chat UI (API Key prompt)
-- Stored in `IsolatedStorage` with User scope (private, per-user)
+- Stored in `IsolatedStorage` with Company scope, keyed per user (private, per-user)
 - Takes priority over the service key
 - Useful when users have their own accounts or for cost attribution
 
@@ -233,7 +231,7 @@ Not all models handle tool calling (function calling) well. These are tested and
 | -------- | ----- | -------------------- | ----- |
 | Ollama | `qwen3:8b` | Excellent | Best balance for 16GB hardware |
 | Ollama | `qwen2.5:14b` | Excellent | Needs 16GB+ VRAM |
-| OpenAI | `gpt-4o` | Excellent | Best overall |
+| OpenAI | `gpt-4.1` | Excellent | Best overall |
 | OpenAI | `gpt-4o-mini` | Good | Lower cost |
 | Grok | `grok-2` | Excellent | Fast |
 | Groq | `llama-3.1-70b-versatile` | Good | Very fast inference |
@@ -247,9 +245,9 @@ Not all models handle tool calling (function calling) well. These are tested and
 
 | Issue | Solution |
 | ----- | -------- |
-| "Provider not found" error | Verify the provider Code matches exactly (case-sensitive) |
-| "No API key available" | Set a service key on the provider card, or enter a per-user key |
-| Test Connection fails with 401 | Wrong API key — verify it matches the provider's console |
-| Test Connection fails with timeout | Increase Timeout Seconds on the provider card |
-| Models list is empty | Some providers don't support `/v1/models` — enter models manually on Chat Roles |
-| Provider not showing in lookup | Ensure the provider's Enabled checkbox is checked |
+| "Provider not found" error | Verify the role Code matches exactly (case-sensitive) |
+| "API key not configured" | Enter a per-user key in the chat UI, or save a service key |
+| Chat not working with 401 | Wrong API key — verify it matches the provider's console |
+| Timeout errors | Increase Timeout Seconds on the MCP Chat Role card |
+| Models list is empty | Some providers don't support `/v1/models` (e.g., Azure OpenAI) |
+| "LLM is not configured" | Create an MCP Chat Role and set its Chat Provider |

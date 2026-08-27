@@ -18,9 +18,9 @@ codeunit 10035491 "CE LLM Model Call Impl ori" implements "Cloud Event Msg Inter
     /// </summary>
     internal procedure IsEnabled(): Boolean
     var
-        LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
-        exit(LLMChatSetup.HasServiceGate());
+        exit(ProviderBase.HasServiceGate());
     end;
 
     /// <summary>
@@ -66,10 +66,10 @@ codeunit 10035491 "CE LLM Model Call Impl ori" implements "Cloud Event Msg Inter
     [NonDebuggable]
     internal procedure ExecuteCloudEventTask(var Argument: Record "CE Message Argument ori")
     var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
+        MCPChatRole: Record "MCP Chat Role ori";
         ApiClient: Codeunit "CE LLM API Client ori";
         ToolRunner: Codeunit "CE LLM Tool Runner ori";
-        LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
         RequestJson: JsonObject;
         ResponseJson: JsonObject;
         ToolsToken: JsonToken;
@@ -78,7 +78,6 @@ codeunit 10035491 "CE LLM Model Call Impl ori" implements "Cloud Event Msg Inter
         Model: Text;
         SystemPrompt: Text;
         UserPrompt: Text;
-        ApiKey: Text;
         MaxTokens: Integer;
         MaxToolIterations: Integer;
         AnswerText: Text;
@@ -87,7 +86,7 @@ codeunit 10035491 "CE LLM Model Call Impl ori" implements "Cloud Event Msg Inter
     begin
         Argument.AssertVersion1();
         Argument.AssertIsLicensed();
-        if not LLMChatSetup.AssertServiceGate(Argument) then
+        if not ProviderBase.AssertServiceGate(Argument) then
             exit;
 
         RequestJson := Argument.GetRequestJson();
@@ -96,13 +95,13 @@ codeunit 10035491 "CE LLM Model Call Impl ori" implements "Cloud Event Msg Inter
             ProviderCode := CopyStr(ProviderToken.AsValue().AsText(), 1, MaxStrLen(ProviderCode));
 
         if ProviderCode <> '' then begin
-            if not ProviderSetup.Get(ProviderCode) then begin
+            if not MCPChatRole.Get(ProviderCode) then begin
                 Argument.RespondWithError(StrSubstNo(ProviderNotFoundErr, ProviderCode));
                 exit;
             end;
             HasProvider := true;
         end else
-            HasProvider := LLMChatSetup.ResolveProvider(ProviderSetup);
+            HasProvider := ProviderBase.GetCurrentRole(MCPChatRole);
 
         Model := GetTextValue(RequestJson, 'model');
         SystemPrompt := GetTextValue(RequestJson, 'system');
@@ -118,10 +117,10 @@ codeunit 10035491 "CE LLM Model Call Impl ori" implements "Cloud Event Msg Inter
         end;
 
         if HasProvider then begin
-            Model := ProviderSetup.ResolveModel(Model);
-            ApiKey := ProviderSetup.GetApiKey();
+            if (Model = '') and (MCPChatRole.Model <> '') then
+                Model := MCPChatRole.Model;
             if HasTools then
-                AnswerText := ToolRunner.RunWithTools(Model, SystemPrompt, UserPrompt, ProviderSetup.GetMaxTokens(), ToolsToken.AsArray(), MaxToolIterations)
+                AnswerText := ToolRunner.RunWithTools(Model, SystemPrompt, UserPrompt, MCPChatRole."Max Tokens", ToolsToken.AsArray(), MaxToolIterations)
             else
                 AnswerText := ApiClient.Complete(Model, SystemPrompt, UserPrompt, MaxTokens);
         end else begin

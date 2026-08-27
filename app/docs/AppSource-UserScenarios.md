@@ -34,7 +34,7 @@
 ### Expected Results
 - Extension installs without errors.
 - No data loss or service interruption.
-- Cloud Events Setup page shows an "LLM Chat" group (visible only with the service gate permission set).
+- The three Chat Provider values (OpenAI, Azure OpenAI, Custom LLM) appear in the MCP Chat Role Card's Chat Provider dropdown.
 
 ---
 
@@ -59,9 +59,9 @@
 
 ---
 
-## Scenario 3: Configure LLM Endpoint
+## Scenario 3: Configure LLM Provider via MCP Chat Role
 
-**Area:** Cloud Events Setup
+**Area:** MCP Chat Role Setup
 
 ### Setup
 1. Extension is installed.
@@ -69,20 +69,22 @@
 3. Current user has the `CE LLM Svc` permission set assigned.
 
 ### Steps
-1. Open Cloud Events Setup.
-2. The "LLM Chat" group shows fields: LLM Base URL, Service API Key, LLM Default Model, API Timeout, Max Output Tokens.
-3. Verify the Base URL is set to `https://llm.kappi.is` (or your endpoint).
-4. Enter the Service API Key.
-5. Click the lookup on "LLM Default Model".
-6. Select a model from the list (e.g., qwen3:8b).
-7. Set API Timeout to 300 seconds.
-8. Set Max Output Tokens to 4096.
-9. Save the record.
+1. Search for **MCP Chat Role List** and open it.
+2. Click **New** to create a role.
+3. Set Code to `OLLAMA` and Description to `Ollama (Self-Hosted)`.
+4. Set **Chat Provider** to `Custom LLM`.
+5. Set **Base URL** to `https://llm.kappi.is` (or your endpoint).
+6. Set **Model** to `qwen3:8b`.
+7. Set **Timeout Seconds** to 300.
+8. Set **Max Tokens** to 8192.
+9. Check the **Default** checkbox.
+10. Save the record.
 
 ### Expected Results
-- The model lookup calls `/v1/models` on the configured endpoint and shows available models.
-- The selected model is saved and used as the default for all chat sessions that don't override it via a Chat Role.
-- The timeout and token fields show their configured values.
+- The role is created with all configured fields.
+- The role appears in the MCP Chat Role List.
+- The Default flag is set; only one role can be default at a time.
+- The chat panel uses this role's provider when no explicit role override exists.
 
 ---
 
@@ -113,6 +115,7 @@
 
 ### Setup
 1. A valid API key is configured (Scenario 3 or 4).
+2. An MCP Chat Role with a Chat Provider is set as Default.
 
 ### Steps
 1. Open a page with the MCP Chat FactBox.
@@ -132,7 +135,8 @@
 
 ### Setup
 1. A valid API key is configured.
-2. At least one customer exists in the database.
+2. An MCP Chat Role with a Chat Provider is set as Default.
+3. At least one customer exists in the database.
 
 ### Steps
 1. Open the MCP Chat FactBox.
@@ -152,14 +156,14 @@
 ### Setup
 1. Extension is installed.
 2. Current user does NOT have the `CE LLM Svc` permission set.
+3. No MCP Chat Role exists with a Chat Provider configured.
 
 ### Steps
-1. Open Cloud Events Setup.
-2. Look for the "LLM Chat" group.
+1. Try to submit a Cloud Event with Type = `LLM.Model.Call`.
 
 ### Expected Results
-- The "LLM Chat" group is not visible.
-- The user cannot see or modify the service API key, default model, timeout, or max tokens.
+- The message type's `IsEnabled` returns false when no role with a Chat Provider is configured.
+- The service gate prevents execution and responds with an error message.
 
 ---
 
@@ -168,7 +172,7 @@
 **Area:** Service Gate + Chat
 
 ### Setup
-1. An administrator has set the Service API Key in Cloud Events Setup.
+1. An administrator has configured an MCP Chat Role with a Chat Provider and saved a Service API Key.
 2. A test user has the `CE LLM Svc` permission set but no personal API key.
 
 ### Steps
@@ -187,7 +191,7 @@
 **Area:** Message Type
 
 ### Setup
-1. The Service API Key is configured in Cloud Events Setup.
+1. An MCP Chat Role with a Chat Provider is configured and has an API key available.
 2. Current user has the `CE LLM Svc` permission set.
 
 ### Steps
@@ -208,7 +212,7 @@
 **Area:** Request Log
 
 ### Setup
-1. The Service API Key is configured.
+1. An API key is configured (via MCP Chat Role service key or per-user key).
 2. "Request Debug Mode" is enabled in Cloud Events Setup.
 
 ### Steps

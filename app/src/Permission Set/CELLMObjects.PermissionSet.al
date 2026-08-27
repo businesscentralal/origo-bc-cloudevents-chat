@@ -19,10 +19,5 @@ permissionset 10035486 "CE LLM Obj ori"
         codeunit "CE LLM Azure OAI Impl ori" = X,
         codeunit "CE LLM Custom Impl ori" = X,
         codeunit "CE LLM API Client ori" = X,
-        codeunit "CE LLM Model Call Impl ori" = X,
-        codeunit "CE LLM Model Call Help ori" = X,
-        codeunit "CE LLM Model List Impl ori" = X,
-        codeunit "CE LLM Model List Help ori" = X,
-        codeunit "CE LLM Provider List Impl ori" = X,
         codeunit "CE LLM Tool Runner ori" = X;
 }

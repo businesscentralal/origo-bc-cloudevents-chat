@@ -282,22 +282,22 @@ codeunit 10035485 "CE LLM API Client ori"
     end;
 
     /// <summary>
-    /// Sends a chat completion using a specific provider configuration.
+    /// Sends a chat completion to an explicit endpoint URL with the specified auth.
     /// </summary>
     [NonDebuggable]
-    procedure SendForProvider(var ProviderSetup: Record "CE LLM Provider Setup ori"; RequestBody: JsonObject; ApiKey: Text) Response: JsonObject
+    procedure SendToEndpoint(ChatUrl: Text; AuthHeaderName: Text; ApiKey: Text; TimeoutMs: Integer; RequestBody: JsonObject) Response: JsonObject
     var
         HttpClientVar: HttpClient;
         HttpContent: HttpContent;
         HttpResponse: HttpResponseMessage;
         ContentHeaders: HttpHeaders;
+        DefaultHeaders: HttpHeaders;
         RequestText: Text;
         ResponseText: Text;
-        RequestUrl: Text;
         StartTime: DateTime;
     begin
         HasPendingLog := false;
-        LastServiceName := ProviderSetup.Code;
+        LastServiceName := ServiceNameTok;
         RequestBody.WriteTo(RequestText);
         HttpContent.WriteFrom(RequestText);
         HttpContent.GetHeaders(ContentHeaders);
@@ -305,16 +305,16 @@ codeunit 10035485 "CE LLM API Client ori"
             ContentHeaders.Remove('Content-Type');
         ContentHeaders.Add('Content-Type', 'application/json');
 
-        if ApiKey = '' then
-            ApiKey := ProviderSetup.GetApiKey();
+        DefaultHeaders := HttpClientVar.DefaultRequestHeaders();
+        if AuthHeaderName = 'Authorization' then
+            DefaultHeaders.Add('Authorization', 'Bearer ' + ApiKey)
+        else
+            DefaultHeaders.Add(AuthHeaderName, ApiKey);
+        HttpClientVar.Timeout(TimeoutMs);
 
-        ProviderSetup.ApplyAuthHeader(HttpClientVar, ApiKey);
-        HttpClientVar.Timeout(ProviderSetup.GetTimeoutMs());
-
-        RequestUrl := ProviderSetup.GetChatUrl();
         StartTime := CurrentDateTime();
-        if not HttpClientVar.Post(RequestUrl, HttpContent, HttpResponse) then begin
-            BufferLog('chat/completions', 'POST', RequestUrl, RequestText, '',
+        if not HttpClientVar.Post(ChatUrl, HttpContent, HttpResponse) then begin
+            BufferLog('chat/completions', 'POST', ChatUrl, RequestText, '',
                 GetLastErrorText(), 0, CurrentDateTime() - StartTime, false);
             Error(CallFailedErr, GetLastErrorText());
         end;
@@ -322,12 +322,12 @@ codeunit 10035485 "CE LLM API Client ori"
         HttpResponse.Content.ReadAs(ResponseText);
 
         if not HttpResponse.IsSuccessStatusCode() then begin
-            BufferLog('chat/completions', 'POST', RequestUrl, RequestText, ResponseText,
+            BufferLog('chat/completions', 'POST', ChatUrl, RequestText, ResponseText,
                 GetErrorDetail(ResponseText), HttpResponse.HttpStatusCode(), CurrentDateTime() - StartTime, false);
             Error(ApiStatusErr, Format(HttpResponse.HttpStatusCode()), GetErrorDetail(ResponseText));
         end;
 
-        BufferLog('chat/completions', 'POST', RequestUrl, RequestText, ResponseText,
+        BufferLog('chat/completions', 'POST', ChatUrl, RequestText, ResponseText,
             '', HttpResponse.HttpStatusCode(), CurrentDateTime() - StartTime, true);
 
         if not Response.ReadFrom(ResponseText) then
@@ -335,26 +335,26 @@ codeunit 10035485 "CE LLM API Client ori"
     end;
 
     /// <summary>
-    /// Lists models available on a specific provider.
+    /// Lists models from an explicit endpoint URL with the specified auth.
     /// </summary>
     [NonDebuggable]
-    procedure ListModelsForProvider(var ProviderSetup: Record "CE LLM Provider Setup ori") Models: JsonArray
+    procedure ListModelsFromEndpoint(ModelsUrl: Text; AuthHeaderName: Text; ApiKey: Text) Models: JsonArray
     var
-        HttpClient: HttpClient;
+        HttpClientVar: HttpClient;
         HttpResponse: HttpResponseMessage;
+        DefaultHeaders: HttpHeaders;
         Response: JsonObject;
         DataToken: JsonToken;
-        RequestUrl: Text;
         ResponseText: Text;
-        ApiKey: Text;
     begin
-        LastServiceName := ProviderSetup.Code;
-        ApiKey := ProviderSetup.GetApiKey();
-        RequestUrl := ProviderSetup.GetModelsUrl();
+        LastServiceName := ServiceNameTok;
+        DefaultHeaders := HttpClientVar.DefaultRequestHeaders();
+        if AuthHeaderName = 'Authorization' then
+            DefaultHeaders.Add('Authorization', 'Bearer ' + ApiKey)
+        else
+            DefaultHeaders.Add(AuthHeaderName, ApiKey);
 
-        ProviderSetup.ApplyAuthHeader(HttpClient, ApiKey);
-
-        if not HttpClient.Get(RequestUrl, HttpResponse) then
+        if not HttpClientVar.Get(ModelsUrl, HttpResponse) then
             Error(CallFailedErr, GetLastErrorText());
 
         HttpResponse.Content.ReadAs(ResponseText);

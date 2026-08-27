@@ -16,78 +16,84 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
         ChatUtils: Codeunit "CE MCP Chat Utils ori";
 
     [NonDebuggable]
-    internal procedure SendChatMessage(PayloadJson: Text): Text
+    internal procedure SendChatMessage(PayloadJson: Text; AuthHeaderName: Text; DefaultBaseUrl: Text; DefaultTimeoutSec: Integer; DefaultMaxTokens: Integer): Text
     var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
-        LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
         ApiClient: Codeunit "CE LLM API Client ori";
+        MCPChatRole: Record "MCP Chat Role ori";
         PayloadObject: JsonObject;
         Messages: JsonArray;
         OpenAITools: JsonArray;
         Model: Text;
         SystemPrompt: Text;
         ApiKey: Text;
+        ChatUrl: Text;
     begin
         if not PayloadObject.ReadFrom(PayloadJson) then
             exit(BuildErrorResponse('Invalid payload JSON.'));
 
-        if not LLMChatSetup.ResolveProvider(ProviderSetup) then
-            exit(BuildErrorResponse('No LLM provider configured.'));
-
-        ApiKey := ProviderSetup.GetApiKey();
+        ApiKey := ProviderBase.GetApiKey();
         if ApiKey = '' then
             exit(BuildErrorResponse('API key not configured.'));
 
+        ProviderBase.GetCurrentRole(MCPChatRole);
         Model := GetTextProperty(PayloadObject, 'model');
         if Model = '' then
-            Model := ProviderSetup.ResolveModel('');
+            Model := ProviderBase.GetModel(MCPChatRole, '');
 
-        SystemPrompt := BuildSystemPrompt(PayloadObject);
+        SystemPrompt := BuildSystemPrompt(PayloadObject, MCPChatRole);
         ParseMessages(PayloadObject, Messages);
 
         if SystemPrompt <> '' then
             AddSystemMessage(Messages, SystemPrompt);
 
         BuildToolDefinitions(OpenAITools);
+        ChatUrl := ProviderBase.GetBaseUrl(MCPChatRole, DefaultBaseUrl) + '/v1/chat/completions';
 
-        exit(CallLLMOnce(ApiClient, ProviderSetup, Messages, OpenAITools, Model, ApiKey));
+        exit(CallLLMOnce(ApiClient, ChatUrl, AuthHeaderName, ApiKey,
+            ProviderBase.GetTimeoutMs(MCPChatRole, DefaultTimeoutSec),
+            ProviderBase.GetMaxTokens(MCPChatRole, DefaultMaxTokens),
+            Messages, OpenAITools, Model));
     end;
 
     [NonDebuggable]
-    internal procedure ContinueWithToolResults(ConversationState: Text; ToolResultsJson: Text): Text
+    internal procedure ContinueWithToolResults(ConversationState: Text; ToolResultsJson: Text; AuthHeaderName: Text; DefaultBaseUrl: Text; DefaultTimeoutSec: Integer; DefaultMaxTokens: Integer): Text
     var
-        ProviderSetup: Record "CE LLM Provider Setup ori";
-        LLMChatSetup: Codeunit "CE LLM Chat Setup ori";
+        ProviderBase: Codeunit "CE LLM Provider Base ori";
         ApiClient: Codeunit "CE LLM API Client ori";
+        MCPChatRole: Record "MCP Chat Role ori";
         StateObject: JsonObject;
         Messages: JsonArray;
         OpenAITools: JsonArray;
         MessagesToken: JsonToken;
         Model: Text;
         ApiKey: Text;
+        ChatUrl: Text;
     begin
-        if not LLMChatSetup.ResolveProvider(ProviderSetup) then
-            exit(BuildErrorResponse('No LLM provider configured.'));
-
-        ApiKey := ProviderSetup.GetApiKey();
+        ApiKey := ProviderBase.GetApiKey();
         if ApiKey = '' then
             exit(BuildErrorResponse('API key not configured.'));
 
         if not StateObject.ReadFrom(ConversationState) then
             exit(BuildErrorResponse('Invalid conversation state.'));
 
+        ProviderBase.GetCurrentRole(MCPChatRole);
         Model := GetTextProperty(StateObject, 'model');
         if StateObject.Get('messages', MessagesToken) then
             Messages := MessagesToken.AsArray();
         BuildToolDefinitions(OpenAITools);
 
         AppendToolResultMessages(Messages, ToolResultsJson);
+        ChatUrl := ProviderBase.GetBaseUrl(MCPChatRole, DefaultBaseUrl) + '/v1/chat/completions';
 
-        exit(CallLLMOnce(ApiClient, ProviderSetup, Messages, OpenAITools, Model, ApiKey));
+        exit(CallLLMOnce(ApiClient, ChatUrl, AuthHeaderName, ApiKey,
+            ProviderBase.GetTimeoutMs(MCPChatRole, DefaultTimeoutSec),
+            ProviderBase.GetMaxTokens(MCPChatRole, DefaultMaxTokens),
+            Messages, OpenAITools, Model));
     end;
 
     [NonDebuggable]
-    local procedure CallLLMOnce(var ApiClient: Codeunit "CE LLM API Client ori"; var ProviderSetup: Record "CE LLM Provider Setup ori"; var Messages: JsonArray; OpenAITools: JsonArray; Model: Text; ApiKey: Text): Text
+    local procedure CallLLMOnce(var ApiClient: Codeunit "CE LLM API Client ori"; ChatUrl: Text; AuthHeaderName: Text; ApiKey: Text; TimeoutMs: Integer; MaxTokens: Integer; var Messages: JsonArray; OpenAITools: JsonArray; Model: Text): Text
     var
         Response: JsonObject;
         RequestBody: JsonObject;
@@ -106,12 +112,12 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
         ChatUtils.TrimMessageHistory(Messages, 80000);
 
         RequestBody.Add('model', Model);
-        RequestBody.Add('max_completion_tokens', ProviderSetup.GetMaxTokens());
+        RequestBody.Add('max_completion_tokens', MaxTokens);
         RequestBody.Add('messages', Messages);
         if OpenAITools.Count() > 0 then
             RequestBody.Add('tools', OpenAITools);
 
-        if not TrySendToLLM(ApiClient, ProviderSetup, RequestBody, ApiKey, Response) then begin
+        if not TrySendToLLM(ApiClient, ChatUrl, AuthHeaderName, ApiKey, TimeoutMs, RequestBody, Response) then begin
             ApiClient.LogLastRequest();
             exit(BuildErrorResponse(GetLastErrorText()));
         end;
@@ -168,22 +174,31 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
             Target.Add('tool_calls', ToolCallsToken);
     end;
 
-    local procedure BuildSystemPrompt(PayloadObject: JsonObject) SystemPrompt: Text
+    local procedure BuildSystemPrompt(PayloadObject: JsonObject; var MCPChatRole: Record "MCP Chat Role ori") SystemPrompt: Text
     var
+        CEUserSetup: Record "CE User Setup ori";
         RecordContext: Text;
         UserPrompt: Text;
-        UserSkill: Text;
+        RoleSkill: Text;
+        ContextSkill: Text;
     begin
         RecordContext := GetTextProperty(PayloadObject, 'recordContext');
         SystemPrompt := ToolServer.Bootstrap(RecordContext);
 
-        UserPrompt := GetTextProperty(PayloadObject, 'systemPrompt');
-        if UserPrompt <> '' then
-            SystemPrompt += '\n\nUSER INSTRUCTIONS:\n' + UserPrompt;
+        RoleSkill := MCPChatRole.GetSkill();
+        if RoleSkill <> '' then
+            SystemPrompt += '\n\nSKILL REFERENCE:\n' + RoleSkill;
 
-        UserSkill := GetTextProperty(PayloadObject, 'skill');
-        if UserSkill <> '' then
-            SystemPrompt += '\n\nSKILL REFERENCE:\n' + UserSkill;
+        ContextSkill := GetTextProperty(PayloadObject, 'contextSkill');
+        if ContextSkill <> '' then
+            SystemPrompt += '\n\nCONTEXT SKILL:\n' + ContextSkill;
+
+        CEUserSetup.SetLoadFields("System Prompt");
+        if CEUserSetup.Get(UserSecurityId()) then begin
+            UserPrompt := CEUserSetup.GetSystemPrompt();
+            if UserPrompt <> '' then
+                SystemPrompt += '\n\nUSER INSTRUCTIONS:\n' + UserPrompt;
+        end;
     end;
 
     local procedure BuildToolDefinitions(var OpenAITools: JsonArray)
@@ -212,9 +227,9 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
 
     [TryFunction]
     [NonDebuggable]
-    local procedure TrySendToLLM(var ApiClient: Codeunit "CE LLM API Client ori"; var ProviderSetup: Record "CE LLM Provider Setup ori"; RequestBody: JsonObject; ApiKey: Text; var Response: JsonObject)
+    local procedure TrySendToLLM(var ApiClient: Codeunit "CE LLM API Client ori"; ChatUrl: Text; AuthHeaderName: Text; ApiKey: Text; TimeoutMs: Integer; RequestBody: JsonObject; var Response: JsonObject)
     begin
-        Response := ApiClient.SendForProvider(ProviderSetup, RequestBody, ApiKey);
+        Response := ApiClient.SendToEndpoint(ChatUrl, AuthHeaderName, ApiKey, TimeoutMs, RequestBody);
     end;
 
     local procedure ParseMessages(PayloadObject: JsonObject; var Messages: JsonArray)

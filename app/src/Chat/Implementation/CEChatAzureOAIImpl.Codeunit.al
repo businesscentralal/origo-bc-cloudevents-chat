@@ -157,10 +157,8 @@ codeunit 10035503 "CE Chat Azure OAI Impl ori" implements "MCP Chat Role Provide
         ApiVersionTok: Label '2024-12-01-preview', Locked = true;
         ChatPathTok: Label '/openai/deployments/%1/chat/completions?api-version=%2', Locked = true;
     begin
-        if Argument."Chat Path" = '' then begin
+        if Argument."Chat Path" = '' then
             Argument."Chat Path" := StrSubstNo(ChatPathTok, ProviderBase.GetModel(Argument, ''), ApiVersionTok);
-            Argument.Modify();
-        end;
     end;
 
     local procedure DoGetAvailableModels(var Argument: Record "MCP Chat Argument ori" temporary): Boolean

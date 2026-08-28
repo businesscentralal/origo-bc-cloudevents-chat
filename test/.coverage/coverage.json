@@ -31,7 +31,7 @@
     "95903|GetApiKey_WithUserKey_ReturnsUserKey": 0,
     "95903|GetApiKey_UserKeyTakesPriority": 0,
     "95903|IsConfigured_WithKeyAndUrl_ReturnsTrue": 0,
-    "95903|IsConfigured_WithoutKey_ReturnsFalse": 1,
+    "95903|IsConfigured_WithoutKey_ReturnsFalse": 0,
     "95903|GetTimeoutMs_RoleValue_Converts": 0,
     "95903|GetTimeoutMs_ZeroRole_UsesDefault": 0,
     "95903|GetMaxTokens_RoleValue_Used": 0,

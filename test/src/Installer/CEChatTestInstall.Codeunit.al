@@ -1,8 +1,8 @@
-namespace Origo.APP.CloudEvents.LLM;
+﻿namespace Origo.APP.CloudEvents.Chat;
 
 using System.TestTools.TestRunner;
 
-codeunit 95901 "CE LLM Test Install ori"
+codeunit 95901 "CE Chat Test Install ori"
 {
     Subtype = Install;
 

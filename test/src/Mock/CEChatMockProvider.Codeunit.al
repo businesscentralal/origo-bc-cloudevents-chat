@@ -1,4 +1,4 @@
-namespace Origo.APP.CloudEvents.LLM;
+﻿namespace Origo.APP.CloudEvents.Chat;
 
 using Origo.APP.CloudEvents;
 
@@ -7,14 +7,14 @@ using Origo.APP.CloudEvents;
 /// Inserts a test role with Custom LLM provider and provides
 /// helpers to set up per-user and service keys.
 /// </summary>
-codeunit 95902 "CE LLM Mock Provider ori"
+codeunit 95902 "CE Chat Mock Provider ori"
 {
     Access = Internal;
     Permissions = tabledata "MCP Chat Role ori" = RIMD,
-                  tabledata "CE LLM Service Gate ori" = RIMD;
+                  tabledata "CE Chat Service Gate ori" = RIMD;
 
     var
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
         MockRoleCode: Code[20];
 
     procedure Create(): Code[20]

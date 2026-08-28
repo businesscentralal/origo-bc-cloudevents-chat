@@ -1,13 +1,14 @@
-namespace Origo.APP.CloudEvents.LLM;
+﻿namespace Origo.APP.CloudEvents.Chat;
 
 using Origo.APP.CloudEvents;
+using System.Text;
 
 /// <summary>
 /// Runs the LLM agentic tool loop. Calls the OpenAI-compatible Chat Completions API,
 /// dispatches tool_calls via the Core MCP Tool Server, feeds results back,
 /// and repeats until the model produces a final answer.
 /// </summary>
-codeunit 10035487 "CE LLM Chat Proxy ori"
+codeunit 10035487 "CE Chat Proxy ori"
 {
     Access = Internal;
 
@@ -16,11 +17,10 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
         ChatUtils: Codeunit "CE MCP Chat Utils ori";
 
     [NonDebuggable]
-    internal procedure SendChatMessage(PayloadJson: Text; AuthHeaderName: Text; DefaultBaseUrl: Text; DefaultTimeoutSec: Integer; DefaultMaxTokens: Integer): Text
+    internal procedure SendChatMessage(var Argument: Record "MCP Chat Argument ori" temporary; PayloadJson: Text; AuthHeaderName: Text): Text
     var
-        MCPChatRole: Record "MCP Chat Role ori";
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
-        ApiClient: Codeunit "CE LLM API Client ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
+        ApiClient: Codeunit "CE Chat API Client ori";
         PayloadObject: JsonObject;
         Messages: JsonArray;
         OpenAITools: JsonArray;
@@ -32,36 +32,34 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
         if not PayloadObject.ReadFrom(PayloadJson) then
             exit(BuildErrorResponse('Invalid payload JSON.'));
 
-        ApiKey := ProviderBase.GetApiKey();
+        ApiKey := Argument.GetApiKey();
         if ApiKey = '' then
             exit(BuildErrorResponse('API key not configured.'));
 
-        ProviderBase.GetCurrentRole(MCPChatRole);
         Model := GetTextProperty(PayloadObject, 'model');
         if Model = '' then
-            Model := ProviderBase.GetModel(MCPChatRole, '');
+            Model := ProviderBase.GetModel(Argument, '');
 
-        SystemPrompt := BuildSystemPrompt(PayloadObject, MCPChatRole);
+        SystemPrompt := BuildSystemPrompt(PayloadObject, Argument);
         ParseMessages(PayloadObject, Messages);
 
         if SystemPrompt <> '' then
             AddSystemMessage(Messages, SystemPrompt);
 
         BuildToolDefinitions(OpenAITools);
-        ChatUrl := ProviderBase.GetBaseUrl(MCPChatRole, DefaultBaseUrl) + '/v1/chat/completions';
+        ChatUrl := ProviderBase.GetBaseUrl(Argument, '') + GetChatPath(Argument);
 
-        exit(CallLLMOnce(ApiClient, ChatUrl, AuthHeaderName, ApiKey,
-            ProviderBase.GetTimeoutMs(MCPChatRole, DefaultTimeoutSec),
-            ProviderBase.GetMaxTokens(MCPChatRole, DefaultMaxTokens),
+        exit(CallModelOnce(ApiClient, ChatUrl, AuthHeaderName, ApiKey,
+            ProviderBase.GetTimeoutMs(Argument, 120000),
+            ProviderBase.GetMaxTokens(Argument, 16384),
             Messages, OpenAITools, Model));
     end;
 
     [NonDebuggable]
-    internal procedure ContinueWithToolResults(ConversationState: Text; ToolResultsJson: Text; AuthHeaderName: Text; DefaultBaseUrl: Text; DefaultTimeoutSec: Integer; DefaultMaxTokens: Integer): Text
+    internal procedure ContinueWithToolResults(var Argument: Record "MCP Chat Argument ori" temporary; ConversationState: Text; ToolResultsJson: Text; AuthHeaderName: Text): Text
     var
-        MCPChatRole: Record "MCP Chat Role ori";
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
-        ApiClient: Codeunit "CE LLM API Client ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
+        ApiClient: Codeunit "CE Chat API Client ori";
         StateObject: JsonObject;
         Messages: JsonArray;
         OpenAITools: JsonArray;
@@ -70,30 +68,29 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
         ApiKey: Text;
         ChatUrl: Text;
     begin
-        ApiKey := ProviderBase.GetApiKey();
+        ApiKey := Argument.GetApiKey();
         if ApiKey = '' then
             exit(BuildErrorResponse('API key not configured.'));
 
         if not StateObject.ReadFrom(ConversationState) then
             exit(BuildErrorResponse('Invalid conversation state.'));
 
-        ProviderBase.GetCurrentRole(MCPChatRole);
         Model := GetTextProperty(StateObject, 'model');
         if StateObject.Get('messages', MessagesToken) then
             Messages := MessagesToken.AsArray();
         BuildToolDefinitions(OpenAITools);
 
         AppendToolResultMessages(Messages, ToolResultsJson);
-        ChatUrl := ProviderBase.GetBaseUrl(MCPChatRole, DefaultBaseUrl) + '/v1/chat/completions';
+        ChatUrl := ProviderBase.GetBaseUrl(Argument, '') + GetChatPath(Argument);
 
-        exit(CallLLMOnce(ApiClient, ChatUrl, AuthHeaderName, ApiKey,
-            ProviderBase.GetTimeoutMs(MCPChatRole, DefaultTimeoutSec),
-            ProviderBase.GetMaxTokens(MCPChatRole, DefaultMaxTokens),
+        exit(CallModelOnce(ApiClient, ChatUrl, AuthHeaderName, ApiKey,
+            ProviderBase.GetTimeoutMs(Argument, 120000),
+            ProviderBase.GetMaxTokens(Argument, 16384),
             Messages, OpenAITools, Model));
     end;
 
     [NonDebuggable]
-    local procedure CallLLMOnce(var ApiClient: Codeunit "CE LLM API Client ori"; ChatUrl: Text; AuthHeaderName: Text; ApiKey: Text; TimeoutMs: Integer; MaxTokens: Integer; var Messages: JsonArray; OpenAITools: JsonArray; Model: Text): Text
+    local procedure CallModelOnce(var ApiClient: Codeunit "CE Chat API Client ori"; ChatUrl: Text; AuthHeaderName: Text; ApiKey: Text; TimeoutMs: Integer; MaxTokens: Integer; var Messages: JsonArray; OpenAITools: JsonArray; Model: Text): Text
     var
         Response: JsonObject;
         RequestBody: JsonObject;
@@ -117,7 +114,7 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
         if OpenAITools.Count() > 0 then
             RequestBody.Add('tools', OpenAITools);
 
-        if not TrySendToLLM(ApiClient, ChatUrl, AuthHeaderName, ApiKey, TimeoutMs, RequestBody, Response) then begin
+        if not TrySendToModel(ApiClient, ChatUrl, AuthHeaderName, ApiKey, TimeoutMs, RequestBody, Response) then begin
             ApiClient.LogLastRequest();
             exit(BuildErrorResponse(GetLastErrorText()));
         end;
@@ -174,31 +171,53 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
             Target.Add('tool_calls', ToolCallsToken);
     end;
 
-    local procedure BuildSystemPrompt(PayloadObject: JsonObject; var MCPChatRole: Record "MCP Chat Role ori") SystemPrompt: Text
+    local procedure BuildSystemPrompt(PayloadObject: JsonObject; var Argument: Record "MCP Chat Argument ori" temporary) SystemPrompt: Text
     var
-        CEUserSetup: Record "CE User Setup ori";
+        PromptBuilder: TextBuilder;
+        RecordContextToken: JsonToken;
         RecordContext: Text;
         UserPrompt: Text;
         RoleSkill: Text;
         ContextSkill: Text;
     begin
-        RecordContext := GetTextProperty(PayloadObject, 'recordContext');
-        SystemPrompt := ToolServer.Bootstrap(RecordContext);
+        PromptBuilder.Append(ToolServer.Bootstrap(''));
 
-        RoleSkill := MCPChatRole.GetSkill();
-        if RoleSkill <> '' then
-            SystemPrompt += '\n\nSKILL REFERENCE:\n' + RoleSkill;
+        if PayloadObject.Get('recordContext', RecordContextToken) then begin
+            RecordContextToken.WriteTo(RecordContext);
+            if RecordContext <> '' then begin
+                PromptBuilder.AppendLine();
+                PromptBuilder.AppendLine();
+                PromptBuilder.AppendLine('RECORD CONTEXT:');
+                PromptBuilder.AppendLine(RecordContext);
+                PromptBuilder.AppendLine('When the user refers to the current page record, use its tableId and recordSystemId with get_records to fetch data.');
+            end;
+        end;
+
+        RoleSkill := Argument.GetSkill();
+        if RoleSkill <> '' then begin
+            PromptBuilder.AppendLine();
+            PromptBuilder.AppendLine();
+            PromptBuilder.AppendLine('SKILL REFERENCE:');
+            PromptBuilder.Append(RoleSkill);
+        end;
 
         ContextSkill := GetTextProperty(PayloadObject, 'contextSkill');
-        if ContextSkill <> '' then
-            SystemPrompt += '\n\nCONTEXT SKILL:\n' + ContextSkill;
-
-        CEUserSetup.SetLoadFields("User Security ID");
-        if CEUserSetup.Get(UserSecurityId()) then begin
-            UserPrompt := CEUserSetup.GetSystemPrompt();
-            if UserPrompt <> '' then
-                SystemPrompt += '\n\nUSER INSTRUCTIONS:\n' + UserPrompt;
+        if ContextSkill <> '' then begin
+            PromptBuilder.AppendLine();
+            PromptBuilder.AppendLine();
+            PromptBuilder.AppendLine('CONTEXT SKILL:');
+            PromptBuilder.Append(ContextSkill);
         end;
+
+        UserPrompt := Argument.GetUserPrompt();
+        if UserPrompt <> '' then begin
+            PromptBuilder.AppendLine();
+            PromptBuilder.AppendLine();
+            PromptBuilder.AppendLine('USER INSTRUCTIONS:');
+            PromptBuilder.Append(UserPrompt);
+        end;
+
+        SystemPrompt := PromptBuilder.ToText();
     end;
 
     local procedure BuildToolDefinitions(var OpenAITools: JsonArray)
@@ -227,7 +246,7 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
 
     [TryFunction]
     [NonDebuggable]
-    local procedure TrySendToLLM(var ApiClient: Codeunit "CE LLM API Client ori"; ChatUrl: Text; AuthHeaderName: Text; ApiKey: Text; TimeoutMs: Integer; RequestBody: JsonObject; var Response: JsonObject)
+    local procedure TrySendToModel(var ApiClient: Codeunit "CE Chat API Client ori"; ChatUrl: Text; AuthHeaderName: Text; ApiKey: Text; TimeoutMs: Integer; RequestBody: JsonObject; var Response: JsonObject)
     begin
         Response := ApiClient.SendToEndpoint(ChatUrl, AuthHeaderName, ApiKey, TimeoutMs, RequestBody);
     end;
@@ -349,5 +368,12 @@ codeunit 10035487 "CE LLM Chat Proxy ori"
         if Arguments.Get('format', FormatToken) then
             exit;
         Arguments.Add('format', 'table');
+    end;
+
+    local procedure GetChatPath(var Argument: Record "MCP Chat Argument ori" temporary): Text
+    begin
+        if Argument."Chat Path" <> '' then
+            exit(Argument."Chat Path");
+        exit('/v1/chat/completions');
     end;
 }

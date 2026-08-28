@@ -1,4 +1,4 @@
-namespace Origo.APP.CloudEvents.LLM;
+﻿namespace Origo.APP.CloudEvents.Chat;
 
 using System.TestLibraries.Utilities;
 
@@ -7,7 +7,7 @@ using System.TestLibraries.Utilities;
 /// plain completion, API errors, model listing, and the AI decision/summary patterns.
 /// The LLM HTTP call is mocked via the LLM AI Handler, so no network access or API key is required.
 /// </summary>
-codeunit 95905 "CE LLM Model Call Tst ori"
+codeunit 95905 "CE Chat Model Call Tst ori"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -18,7 +18,7 @@ codeunit 95905 "CE LLM Model Call Tst ori"
     [Test]
     procedure Complete_ReturnsMockedText()
     var
-        ApiClient: Codeunit "CE LLM API Client ori";
+        ApiClient: Codeunit "CE Chat API Client ori";
         ResultText: Text;
     begin
         // [GIVEN] A mocked successful LLM response
@@ -34,7 +34,7 @@ codeunit 95905 "CE LLM Model Call Tst ori"
     [Test]
     procedure Complete_ApiError_Raised()
     var
-        ApiClient: Codeunit "CE LLM API Client ori";
+        ApiClient: Codeunit "CE Chat API Client ori";
         ResultText: Text;
     begin
         // [GIVEN] The next call is configured to fail
@@ -50,7 +50,7 @@ codeunit 95905 "CE LLM Model Call Tst ori"
     [Test]
     procedure AiDecisionStep_ReturnsApprove()
     var
-        ApiClient: Codeunit "CE LLM API Client ori";
+        ApiClient: Codeunit "CE Chat API Client ori";
         DecisionText: Text;
     begin
         // [GIVEN] The model is mocked to approve
@@ -66,7 +66,7 @@ codeunit 95905 "CE LLM Model Call Tst ori"
     [Test]
     procedure AiSummaryStep_ReturnsSentence()
     var
-        ApiClient: Codeunit "CE LLM API Client ori";
+        ApiClient: Codeunit "CE Chat API Client ori";
         SummaryText: Text;
         ExpectedSummary: Text;
     begin
@@ -84,7 +84,7 @@ codeunit 95905 "CE LLM Model Call Tst ori"
     [Test]
     procedure SendChatCompletion_ParsesResponseObject()
     var
-        ApiClient: Codeunit "CE LLM API Client ori";
+        ApiClient: Codeunit "CE Chat API Client ori";
         RequestBody: JsonObject;
         Messages: JsonArray;
         UserMessage: JsonObject;
@@ -110,7 +110,7 @@ codeunit 95905 "CE LLM Model Call Tst ori"
     [Test]
     procedure ListModels_ReturnsModelArray()
     var
-        ApiClient: Codeunit "CE LLM API Client ori";
+        ApiClient: Codeunit "CE Chat API Client ori";
         Models: JsonArray;
         ModelToken: JsonToken;
         IdToken: JsonToken;
@@ -131,7 +131,7 @@ codeunit 95905 "CE LLM Model Call Tst ori"
     [Test]
     procedure ListModels_ApiError_Raised()
     var
-        ApiClient: Codeunit "CE LLM API Client ori";
+        ApiClient: Codeunit "CE Chat API Client ori";
     begin
         // [GIVEN] The next call is configured to fail
         ApiClient.SetMockError('Could not reach the LLM API.');

@@ -1,4 +1,4 @@
-namespace Origo.APP.CloudEvents.LLM;
+﻿namespace Origo.APP.CloudEvents.Chat;
 
 using Origo.APP.CloudEvents;
 
@@ -6,7 +6,7 @@ using Origo.APP.CloudEvents;
 /// Runs an LLM tool loop where selected Cloud Events message types are exposed to
 /// the model as tools. Delegates tool execution to the Core MCP Tool Server. Server-side only.
 /// </summary>
-codeunit 10035490 "CE LLM Tool Runner ori"
+codeunit 10035490 "CE Chat Tool Runner ori"
 {
     Access = Internal;
 
@@ -22,7 +22,7 @@ codeunit 10035490 "CE LLM Tool Runner ori"
     [NonDebuggable]
     procedure RunWithTools(Model: Text; SystemPrompt: Text; UserPrompt: Text; MaxTokens: Integer; ToolNames: JsonArray; MaxIterations: Integer): Text
     var
-        ApiClient: Codeunit "CE LLM API Client ori";
+        ApiClient: Codeunit "CE Chat API Client ori";
         OpenAITools: JsonArray;
         Messages: JsonArray;
         SystemMessage: JsonObject;

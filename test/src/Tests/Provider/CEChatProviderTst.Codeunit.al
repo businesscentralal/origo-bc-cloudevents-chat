@@ -1,4 +1,4 @@
-namespace Origo.APP.CloudEvents.LLM;
+﻿namespace Origo.APP.CloudEvents.Chat;
 
 using Origo.APP.CloudEvents;
 using System.TestLibraries.Utilities;
@@ -6,14 +6,14 @@ using System.TestLibraries.Utilities;
 /// <summary>
 /// Tests for API key management via ProviderBase.
 /// </summary>
-codeunit 95903 "CE LLM Provider Tst ori"
+codeunit 95903 "CE Chat Provider Tst ori"
 {
     Subtype = Test;
     TestPermissions = Disabled;
 
     var
         Assert: Codeunit "Library Assert";
-        MockProvider: Codeunit "CE LLM Mock Provider ori";
+        MockProvider: Codeunit "CE Chat Mock Provider ori";
         IsInitialized: Boolean;
 
     local procedure Initialize()
@@ -36,7 +36,7 @@ codeunit 95903 "CE LLM Provider Tst ori"
     [Test]
     procedure GetApiKey_WithUserKey_ReturnsUserKey()
     var
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         // [GIVEN] A mock role with a per-user key
         Initialize();
@@ -52,7 +52,7 @@ codeunit 95903 "CE LLM Provider Tst ori"
     [Test]
     procedure GetApiKey_UserKeyTakesPriority()
     var
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         // [GIVEN] Both user and service keys exist
         Initialize();
@@ -68,7 +68,7 @@ codeunit 95903 "CE LLM Provider Tst ori"
     [Test]
     procedure IsConfigured_WithKeyAndUrl_ReturnsTrue()
     var
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         // [GIVEN] A configured role with service key and base URL
         Initialize();
@@ -80,7 +80,7 @@ codeunit 95903 "CE LLM Provider Tst ori"
     [Test]
     procedure IsConfigured_WithoutKey_ReturnsFalse()
     var
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         // [GIVEN] No keys stored (fresh state, no Initialize)
         ProviderBase.SaveUserApiKey('');
@@ -97,7 +97,7 @@ codeunit 95903 "CE LLM Provider Tst ori"
     procedure GetTimeoutMs_RoleValue_Converts()
     var
         MCPChatRole: Record "MCP Chat Role ori";
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         // [GIVEN] A role with timeout = 60 seconds
         Initialize();
@@ -111,7 +111,7 @@ codeunit 95903 "CE LLM Provider Tst ori"
     procedure GetTimeoutMs_ZeroRole_UsesDefault()
     var
         MCPChatRole: Record "MCP Chat Role ori";
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         // [GIVEN] A role with timeout = 0
         MCPChatRole.Init();
@@ -124,7 +124,7 @@ codeunit 95903 "CE LLM Provider Tst ori"
     procedure GetMaxTokens_RoleValue_Used()
     var
         MCPChatRole: Record "MCP Chat Role ori";
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         // [GIVEN] A role with max tokens = 2048
         Initialize();
@@ -138,7 +138,7 @@ codeunit 95903 "CE LLM Provider Tst ori"
     procedure GetMaxTokens_ZeroRole_UsesDefault()
     var
         MCPChatRole: Record "MCP Chat Role ori";
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         // [GIVEN] A role with max tokens = 0
         MCPChatRole.Init();

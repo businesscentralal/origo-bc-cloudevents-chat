@@ -1,4 +1,4 @@
-namespace Origo.APP.CloudEvents.LLM;
+﻿namespace Origo.APP.CloudEvents.Chat;
 
 using Origo.APP.CloudEvents;
 
@@ -6,7 +6,7 @@ using Origo.APP.CloudEvents;
 /// Masker for LLM API requests. Strips API keys from request bodies;
 /// passes full bodies in debug mode, redacts in normal mode.
 /// </summary>
-codeunit 10035496 "CE LLM Req Log Masker ori" implements "CE Request Log Masker ori"
+codeunit 10035496 "CE Chat Req Log Masker ori" implements "CE Request Log Masker ori"
 {
     Access = Internal;
 

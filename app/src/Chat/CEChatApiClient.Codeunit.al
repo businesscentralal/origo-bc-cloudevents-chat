@@ -1,13 +1,15 @@
-namespace Origo.APP.CloudEvents.LLM;
+﻿namespace Origo.APP.CloudEvents.Chat;
 
 using Origo.APP.CloudEvents;
+using System.Environment;
+using System.Environment.Configuration;
 
 /// <summary>
 /// Calls the OpenAI-compatible Chat Completions API on the configured LLM endpoint
 /// for unattended, server-side scenarios (such as Cloud Events chain steps).
 /// Uses the encrypted service API key from setup.
 /// </summary>
-codeunit 10035485 "CE LLM API Client ori"
+codeunit 10035485 "CE Chat API Client ori"
 {
     Access = Internal;
 
@@ -144,7 +146,6 @@ codeunit 10035485 "CE LLM API Client ori"
     local procedure DoSendChatCompletion(RequestBody: JsonObject; ApiKey: Text) Response: JsonObject
     var
         MCPChatRole: Record "MCP Chat Role ori";
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
         HttpClientVar: HttpClient;
         HttpContent: HttpContent;
         HttpResponse: HttpResponseMessage;
@@ -153,6 +154,8 @@ codeunit 10035485 "CE LLM API Client ori"
         RequestText: Text;
         ResponseText: Text;
         RequestUrl: Text;
+        BaseUrl: Text;
+        TimeoutMs: Integer;
         StartTime: DateTime;
         IsHandled: Boolean;
     begin
@@ -172,14 +175,24 @@ codeunit 10035485 "CE LLM API Client ori"
 
         OnBeforeSendRequest(HttpContent, HttpResponse, IsHandled);
         if not IsHandled then begin
-            if ApiKey = '' then
-                ApiKey := GetServiceApiKey();
-            ProviderBase.GetCurrentRole(MCPChatRole);
+            if ApiKey = '' then begin
+                ResolveRole(MCPChatRole);
+                ApiKey := ResolveApiKey(MCPChatRole.SystemId);
+            end else
+                ResolveRole(MCPChatRole);
+
+            if MCPChatRole."Base URL" <> '' then
+                BaseUrl := MCPChatRole."Base URL";
+            if MCPChatRole."Timeout Seconds" > 0 then
+                TimeoutMs := MCPChatRole."Timeout Seconds" * 1000
+            else
+                TimeoutMs := 120000;
+
             DefaultHeaders := HttpClientVar.DefaultRequestHeaders();
             DefaultHeaders.Add('x-api-key', ApiKey);
-            HttpClientVar.Timeout(ProviderBase.GetTimeoutMs(MCPChatRole, 120));
+            HttpClientVar.Timeout(TimeoutMs);
 
-            RequestUrl := StrSubstNo(ChatEndpointTok, ProviderBase.GetBaseUrl(MCPChatRole, ''));
+            RequestUrl := StrSubstNo(ChatEndpointTok, BaseUrl);
             StartTime := CurrentDateTime();
             if not HttpClientVar.Post(RequestUrl, HttpContent, HttpResponse) then begin
                 BufferLog('chat/completions', 'POST', RequestUrl, RequestText, '',
@@ -204,11 +217,35 @@ codeunit 10035485 "CE LLM API Client ori"
     end;
 
     [NonDebuggable]
-    local procedure GetServiceApiKey(): Text
+    local procedure ResolveApiKey(RoleSystemId: Guid): Text
     var
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        UserKeyPrefixTok: Label 'CE_LLM_Usr_', Locked = true;
+        ServiceKeyTok: Label 'CE_LLM_Svc', Locked = true;
+        ApiKeyValue: Text;
+        StorageKey: Text;
     begin
-        exit(ProviderBase.GetApiKey());
+        StorageKey := UserKeyPrefixTok + Format(RoleSystemId, 0, 4) + '_' + Format(UserSecurityId(), 0, 4);
+        if IsolatedStorage.Get(StorageKey, DataScope::Company, ApiKeyValue) then
+            if ApiKeyValue <> '' then
+                exit(ApiKeyValue);
+        StorageKey := ServiceKeyTok + '_' + Format(RoleSystemId, 0, 4);
+        if IsolatedStorage.Get(StorageKey, DataScope::Company, ApiKeyValue) then
+            exit(ApiKeyValue);
+    end;
+
+    local procedure ResolveRole(var MCPChatRole: Record "MCP Chat Role ori")
+    var
+        CEUserSetup: Record "CE User Setup ori";
+        RoleCode: Code[20];
+    begin
+        CEUserSetup.SetLoadFields("MCP Chat Role Code");
+        if CEUserSetup.Get(UserSecurityId()) then
+            RoleCode := CEUserSetup."MCP Chat Role Code";
+        if RoleCode <> '' then
+            if MCPChatRole.Get(RoleCode) then
+                exit;
+        MCPChatRole.SetRange(Default, true);
+        if MCPChatRole.FindFirst() then;
     end;
 
     /// <summary>
@@ -218,7 +255,6 @@ codeunit 10035485 "CE LLM API Client ori"
     procedure ListModels() Models: JsonArray
     var
         MCPChatRole: Record "MCP Chat Role ori";
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
         HttpClient: HttpClient;
         HttpResponse: HttpResponseMessage;
         DefaultHeaders: HttpHeaders;
@@ -240,13 +276,16 @@ codeunit 10035485 "CE LLM API Client ori"
         end;
 
         HasPendingLog := false;
-        ProviderBase.GetCurrentRole(MCPChatRole);
-        RequestUrl := StrSubstNo(ModelsEndpointTok, ProviderBase.GetBaseUrl(MCPChatRole, ''));
+        ResolveRole(MCPChatRole);
+        if MCPChatRole."Base URL" <> '' then
+            RequestUrl := StrSubstNo(ModelsEndpointTok, MCPChatRole."Base URL")
+        else
+            RequestUrl := StrSubstNo(ModelsEndpointTok, '');
 
         OnBeforeSendModelsRequest(RequestUrl, HttpResponse, IsHandled);
         if not IsHandled then begin
             DefaultHeaders := HttpClient.DefaultRequestHeaders();
-            DefaultHeaders.Add('x-api-key', ProviderBase.GetApiKey());
+            DefaultHeaders.Add('x-api-key', ResolveApiKey(MCPChatRole.SystemId));
 
             StartTime := CurrentDateTime();
             if not HttpClient.Get(RequestUrl, HttpResponse) then begin
@@ -403,14 +442,10 @@ codeunit 10035485 "CE LLM API Client ori"
     end;
 
     local procedure ResolveModel(Model: Text): Text
-    var
-        MCPChatRole: Record "MCP Chat Role ori";
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
     begin
         if Model <> '' then
             exit(Model);
-        ProviderBase.GetCurrentRole(MCPChatRole);
-        exit(ProviderBase.GetModel(MCPChatRole, ''));
+        exit('gpt-4o');
     end;
 
     local procedure ResolveMaxTokens(MaxTokens: Integer): Integer

@@ -1,10 +1,10 @@
 {
   "id": "b8e5d9f2-1a73-4c6b-9d3e-7f2a5b8c4d1e",
-  "name": "Origo Cloud Events LLM - Tests",
+  "name": "Origo Cloud Events Chat - Tests",
   "publisher": "Origo",
   "version": "28.0.0.0",
-  "brief": "Origo Cloud Events LLM - Tests",
-  "description": "Origo Cloud Events LLM - Tests",
+  "brief": "Origo Cloud Events Chat - Tests",
+  "description": "Origo Cloud Events Chat - Tests",
   "privacyStatement": "https://www.origo.is/um-origo/stefnur/personuverndarstefna",
   "EULA": "https://www.origo.is/skilmalar-og-oryggismal",
   "help": "https://www.origo.is/",
@@ -19,7 +19,7 @@
     },
     {
       "id": "f7a3c6e1-8d42-4b9a-a5e7-3c1d8f4e6b2a",
-      "name": "Origo Cloud Events LLM",
+      "name": "Origo Cloud Events Chat",
       "publisher": "Origo",
       "version": "28.0.0.0"
     },

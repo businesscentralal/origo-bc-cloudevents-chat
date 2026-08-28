@@ -1,9 +1,9 @@
-namespace Origo.APP.CloudEvents.LLM;
+﻿namespace Origo.APP.CloudEvents.Chat;
 
 /// <summary>
 /// Handles the notification action to open Extension Management for enabling HTTP client requests.
 /// </summary>
-codeunit 10035489 "CE LLM Http Notif. Action ori"
+codeunit 10035489 "CE Chat Http Notif. Action ori"
 {
     Access = Internal;
 

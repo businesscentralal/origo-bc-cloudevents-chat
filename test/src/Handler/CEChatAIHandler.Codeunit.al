@@ -1,11 +1,11 @@
-namespace Origo.APP.CloudEvents.LLM;
+﻿namespace Origo.APP.CloudEvents.Chat;
 
 /// <summary>
 /// Test handler codeunit for mocking LLM API HTTP responses.
 /// Subscribes to the LLM API Client's OnBeforeSendRequest event to intercept the
 /// outgoing call and return a canned response (or simulate a failure) without network access.
 /// </summary>
-codeunit 95900 "CE LLM AI Handler ori"
+codeunit 95900 "CE Chat AI Handler ori"
 {
     EventSubscriberInstance = Manual;
     SingleInstance = true;
@@ -34,7 +34,7 @@ codeunit 95900 "CE LLM AI Handler ori"
         ErrorMessageText := ErrorMsg;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CE LLM API Client ori", 'OnBeforeSendRequest', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CE Chat API Client ori", 'OnBeforeSendRequest', '', false, false)]
     local procedure OnBeforeSendRequest(var Content: HttpContent; var ResponseMessage: HttpResponseMessage; var IsHandled: Boolean)
     begin
         IsHandled := true;
@@ -43,7 +43,7 @@ codeunit 95900 "CE LLM AI Handler ori"
         ResponseMessage := GlobalResponseMessage;
     end;
 
-    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CE LLM API Client ori", 'OnBeforeSendModelsRequest', '', false, false)]
+    [EventSubscriber(ObjectType::Codeunit, Codeunit::"CE Chat API Client ori", 'OnBeforeSendModelsRequest', '', false, false)]
     local procedure OnBeforeSendModelsRequest(var RequestUrl: Text; var ResponseMessage: HttpResponseMessage; var IsHandled: Boolean)
     begin
         IsHandled := true;

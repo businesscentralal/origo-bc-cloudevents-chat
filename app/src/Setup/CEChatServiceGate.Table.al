@@ -1,13 +1,13 @@
-namespace Origo.APP.CloudEvents.LLM;
+﻿namespace Origo.APP.CloudEvents.Chat;
 
 /// <summary>
 /// Permission gate table for LLM service key access.
 /// No records are stored — used solely as a WritePermission() check target.
 /// </summary>
-table 10035495 "CE LLM Service Gate ori"
+table 10035495 "CE Chat Service Gate ori"
 {
     Access = Internal;
-    Caption = 'LLM Service Gate', Comment = 'is-IS=LLM þjónustuhlið';
+    Caption = 'Chat Service Gate', Comment = 'is-IS=LLM þjónustuhlið';
     DataClassification = SystemMetadata;
 
     fields

@@ -1,4 +1,4 @@
-namespace Origo.APP.CloudEvents.LLM;
+﻿namespace Origo.APP.CloudEvents.Chat;
 
 using Origo.APP.CloudEvents;
 using System.TestLibraries.Utilities;
@@ -6,7 +6,7 @@ using System.TestLibraries.Utilities;
 /// <summary>
 /// Tests for role resolution and provider base configuration.
 /// </summary>
-codeunit 95904 "CE LLM Chat Role Tst ori"
+codeunit 95904 "CE Chat Role Tst ori"
 {
     Subtype = Test;
     TestPermissions = Disabled;
@@ -19,8 +19,8 @@ codeunit 95904 "CE LLM Chat Role Tst ori"
     var
         MCPChatRole: Record "MCP Chat Role ori";
         CEUserSetup: Record "CE User Setup ori";
-        MockProvider: Codeunit "CE LLM Mock Provider ori";
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        MockProvider: Codeunit "CE Chat Mock Provider ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
         SavedRoleCode: Code[20];
     begin
         // [GIVEN] Clear any user-level role assignment to test default fallback
@@ -51,8 +51,8 @@ codeunit 95904 "CE LLM Chat Role Tst ori"
     [Test]
     procedure HasServiceGate_WithConfiguredRole_ReturnsTrue()
     var
-        MockProvider: Codeunit "CE LLM Mock Provider ori";
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        MockProvider: Codeunit "CE Chat Mock Provider ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         // [GIVEN] A mock role with Chat Provider set
         MockProvider.Create();
@@ -68,8 +68,8 @@ codeunit 95904 "CE LLM Chat Role Tst ori"
     procedure GetBaseUrl_RoleOverridesDefault()
     var
         MCPChatRole: Record "MCP Chat Role ori";
-        MockProvider: Codeunit "CE LLM Mock Provider ori";
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        MockProvider: Codeunit "CE Chat Mock Provider ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         // [GIVEN] A role with a specific Base URL
         MockProvider.Create();
@@ -87,7 +87,7 @@ codeunit 95904 "CE LLM Chat Role Tst ori"
     procedure GetBaseUrl_EmptyRole_FallsBackToDefault()
     var
         MCPChatRole: Record "MCP Chat Role ori";
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         // [GIVEN] A role with empty Base URL
         MCPChatRole.Init();
@@ -100,8 +100,8 @@ codeunit 95904 "CE LLM Chat Role Tst ori"
     procedure GetModel_RoleOverridesDefault()
     var
         MCPChatRole: Record "MCP Chat Role ori";
-        MockProvider: Codeunit "CE LLM Mock Provider ori";
-        ProviderBase: Codeunit "CE LLM Provider Base ori";
+        MockProvider: Codeunit "CE Chat Mock Provider ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         // [GIVEN] A role with a specific model
         MockProvider.Create();

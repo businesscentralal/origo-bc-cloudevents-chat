@@ -1,0 +1,431 @@
+﻿namespace Origo.APP.CloudEvents.Chat;
+
+using Origo.APP.CloudEvents;
+using System.Text;
+
+/// <summary>
+/// Runs the Anthropic agentic tool loop using the Messages API.
+/// Converts between the Core MCP tool definitions and Anthropic's input_schema format,
+/// and handles the content-block response structure (text/tool_use).
+/// </summary>
+codeunit 10035506 "CE Chat Anthropic Proxy ori"
+{
+    Access = Internal;
+
+    var
+        ToolServer: Codeunit "CE MCP Tool Server";
+        ChatUtils: Codeunit "CE MCP Chat Utils ori";
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
+        AnthropicVersionTok: Label '2023-06-01', Locked = true;
+        MessagesPathTok: Label '%1/v1/messages', Locked = true;
+        ModelsPathTok: Label '%1/v1/models?limit=100', Locked = true;
+        DefaultBaseUrlTok: Label 'https://api.anthropic.com', Locked = true;
+        CallFailedErr: Label 'Could not reach the Anthropic API. %1', Comment = '%1 = error detail, is-IS=Náði ekki sambandi við Anthropic API. %1';
+        ApiStatusErr: Label 'Anthropic API returned status %1. %2', Comment = '%1 = status code, %2 = detail, is-IS=Anthropic API skilaði stöðu %1. %2';
+        InvalidResponseErr: Label 'Received an invalid response from the Anthropic API.', Comment = 'is-IS=Ógilt svar barst frá Anthropic API.';
+
+    [NonDebuggable]
+    internal procedure SendChatMessage(var Argument: Record "MCP Chat Argument ori" temporary; PayloadJson: Text): Text
+    var
+        PayloadObject: JsonObject;
+        Messages: JsonArray;
+        AnthropicTools: JsonArray;
+        Model: Text;
+        SystemPrompt: Text;
+        ApiKey: Text;
+    begin
+        if not PayloadObject.ReadFrom(PayloadJson) then
+            exit(BuildErrorResponse('Invalid payload JSON.'));
+
+        ApiKey := Argument.GetApiKey();
+        if ApiKey = '' then
+            exit(BuildErrorResponse('API key not configured.'));
+
+        Model := GetText(PayloadObject, 'model');
+        if Model = '' then
+            Model := ProviderBase.GetModel(Argument, 'claude-sonnet-4-6');
+
+        SystemPrompt := BuildSystemPrompt(PayloadObject, Argument);
+        ParseMessages(PayloadObject, Messages);
+        BuildToolDefinitions(AnthropicTools);
+
+        exit(CallAnthropicOnce(
+            Messages, AnthropicTools, Model, SystemPrompt, ApiKey,
+            ProviderBase.GetBaseUrl(Argument, DefaultBaseUrlTok),
+            ProviderBase.GetTimeoutMs(Argument, 300000),
+            ProviderBase.GetMaxTokens(Argument, 16384)));
+    end;
+
+    [NonDebuggable]
+    internal procedure ContinueWithToolResults(var Argument: Record "MCP Chat Argument ori" temporary; ConversationState: Text; ToolResultsJson: Text): Text
+    var
+        StateObject: JsonObject;
+        Messages: JsonArray;
+        AnthropicTools: JsonArray;
+        AnthropicResults: JsonArray;
+        UserMessage: JsonObject;
+        MessagesToken: JsonToken;
+        Model: Text;
+        SystemPrompt: Text;
+        ApiKey: Text;
+    begin
+        ApiKey := Argument.GetApiKey();
+        if ApiKey = '' then
+            exit(BuildErrorResponse('API key not configured.'));
+
+        if not StateObject.ReadFrom(ConversationState) then
+            exit(BuildErrorResponse('Invalid conversation state.'));
+
+        Model := GetText(StateObject, 'model');
+        SystemPrompt := GetText(StateObject, 'systemPrompt');
+        if StateObject.Get('messages', MessagesToken) then
+            Messages := MessagesToken.AsArray();
+        BuildToolDefinitions(AnthropicTools);
+
+        ConvertToolResults(ToolResultsJson, AnthropicResults);
+        UserMessage.Add('role', 'user');
+        UserMessage.Add('content', AnthropicResults);
+        Messages.Add(UserMessage);
+
+        exit(CallAnthropicOnce(
+            Messages, AnthropicTools, Model, SystemPrompt, ApiKey,
+            ProviderBase.GetBaseUrl(Argument, DefaultBaseUrlTok),
+            ProviderBase.GetTimeoutMs(Argument, 300000),
+            ProviderBase.GetMaxTokens(Argument, 16384)));
+    end;
+
+    [NonDebuggable]
+    local procedure CallAnthropicOnce(var Messages: JsonArray; AnthropicTools: JsonArray; Model: Text; SystemPrompt: Text; ApiKey: Text; BaseUrl: Text; TimeoutMs: Integer; MaxTokens: Integer): Text
+    var
+        Response: JsonObject;
+        RequestBody: JsonObject;
+        ContentToken: JsonToken;
+        AssistantMessage: JsonObject;
+        UsageObject: JsonObject;
+        UsageToken: JsonToken;
+        Reply: Text;
+    begin
+        ChatUtils.CompactOlderToolResults(Messages, 5, 500);
+        ChatUtils.TrimMessageHistory(Messages, 160000);
+
+        RequestBody.Add('model', Model);
+        RequestBody.Add('max_tokens', MaxTokens);
+        if SystemPrompt <> '' then
+            RequestBody.Add('system', SystemPrompt);
+        RequestBody.Add('messages', Messages);
+        if AnthropicTools.Count() > 0 then
+            RequestBody.Add('tools', AnthropicTools);
+
+        if not TrySendMessages(BaseUrl, ApiKey, TimeoutMs, RequestBody, Response) then
+            exit(BuildErrorResponse(GetLastErrorText()));
+
+        if not Response.Get('content', ContentToken) then
+            exit(BuildErrorResponse('Empty response from AI model.'));
+
+        Clear(AssistantMessage);
+        AssistantMessage.Add('role', 'assistant');
+        AssistantMessage.Add('content', ContentToken);
+        Messages.Add(AssistantMessage);
+
+        if Response.Get('usage', UsageToken) then
+            if UsageToken.IsObject() then
+                UsageObject := UsageToken.AsObject();
+
+        if GetText(Response, 'stop_reason') = 'tool_use' then
+            exit(BuildToolCallsResponse(ContentToken.AsArray(), Messages, Model, SystemPrompt, UsageObject));
+
+        Reply := ExtractText(Response);
+        exit(BuildSuccessResponse(Reply, UsageObject));
+    end;
+
+    [TryFunction]
+    [NonDebuggable]
+    local procedure TrySendMessages(BaseUrl: Text; ApiKey: Text; TimeoutMs: Integer; RequestBody: JsonObject; var Response: JsonObject)
+    begin
+        Response := DoSendMessages(BaseUrl, ApiKey, TimeoutMs, RequestBody);
+    end;
+
+    [NonDebuggable]
+    local procedure DoSendMessages(BaseUrl: Text; ApiKey: Text; TimeoutMs: Integer; RequestBody: JsonObject) Response: JsonObject
+    var
+        HttpClientVar: HttpClient;
+        HttpContent: HttpContent;
+        HttpResponse: HttpResponseMessage;
+        ContentHeaders: HttpHeaders;
+        DefaultHeaders: HttpHeaders;
+        RequestUrl: Text;
+        RequestText: Text;
+        ResponseText: Text;
+    begin
+        RequestBody.WriteTo(RequestText);
+        HttpContent.WriteFrom(RequestText);
+        HttpContent.GetHeaders(ContentHeaders);
+        if ContentHeaders.Contains('Content-Type') then
+            ContentHeaders.Remove('Content-Type');
+        ContentHeaders.Add('Content-Type', 'application/json');
+
+        DefaultHeaders := HttpClientVar.DefaultRequestHeaders();
+        DefaultHeaders.Add('x-api-key', ApiKey);
+        DefaultHeaders.Add('anthropic-version', AnthropicVersionTok);
+        HttpClientVar.Timeout(TimeoutMs);
+
+        RequestUrl := StrSubstNo(MessagesPathTok, BaseUrl);
+        if not HttpClientVar.Post(RequestUrl, HttpContent, HttpResponse) then
+            Error(CallFailedErr, GetLastErrorText());
+
+        HttpResponse.Content.ReadAs(ResponseText);
+
+        if not HttpResponse.IsSuccessStatusCode() then
+            Error(ApiStatusErr, Format(HttpResponse.HttpStatusCode()), GetErrorDetail(ResponseText));
+
+        if not Response.ReadFrom(ResponseText) then
+            Error(InvalidResponseErr);
+    end;
+
+    /// <summary>
+    /// Lists models from the Anthropic Models API.
+    /// </summary>
+    [NonDebuggable]
+    internal procedure ListModels(BaseUrl: Text; ApiKey: Text) Models: JsonArray
+    var
+        HttpClientVar: HttpClient;
+        HttpResponse: HttpResponseMessage;
+        DefaultHeaders: HttpHeaders;
+        Response: JsonObject;
+        DataToken: JsonToken;
+        RequestUrl: Text;
+        ResponseText: Text;
+    begin
+        DefaultHeaders := HttpClientVar.DefaultRequestHeaders();
+        DefaultHeaders.Add('x-api-key', ApiKey);
+        DefaultHeaders.Add('anthropic-version', AnthropicVersionTok);
+
+        RequestUrl := StrSubstNo(ModelsPathTok, BaseUrl);
+        if not HttpClientVar.Get(RequestUrl, HttpResponse) then
+            Error(CallFailedErr, GetLastErrorText());
+
+        HttpResponse.Content.ReadAs(ResponseText);
+
+        if not HttpResponse.IsSuccessStatusCode() then
+            Error(ApiStatusErr, Format(HttpResponse.HttpStatusCode()), GetErrorDetail(ResponseText));
+
+        if not Response.ReadFrom(ResponseText) then
+            Error(InvalidResponseErr);
+
+        if Response.Get('data', DataToken) then
+            if DataToken.IsArray() then
+                Models := DataToken.AsArray();
+    end;
+
+    local procedure BuildSystemPrompt(PayloadObject: JsonObject; var Argument: Record "MCP Chat Argument ori" temporary) SystemPrompt: Text
+    var
+        PromptBuilder: TextBuilder;
+        RecordContextToken: JsonToken;
+        RecordContext: Text;
+        UserPrompt: Text;
+        RoleSkill: Text;
+        ContextSkill: Text;
+    begin
+        PromptBuilder.Append(ToolServer.Bootstrap(''));
+
+        if PayloadObject.Get('recordContext', RecordContextToken) then begin
+            RecordContextToken.WriteTo(RecordContext);
+            if RecordContext <> '' then begin
+                PromptBuilder.AppendLine();
+                PromptBuilder.AppendLine();
+                PromptBuilder.AppendLine('RECORD CONTEXT:');
+                PromptBuilder.AppendLine(RecordContext);
+                PromptBuilder.AppendLine('When the user refers to the current page record, use its tableId and recordSystemId with get_records to fetch data.');
+            end;
+        end;
+
+        RoleSkill := Argument.GetSkill();
+        if RoleSkill <> '' then begin
+            PromptBuilder.AppendLine();
+            PromptBuilder.AppendLine();
+            PromptBuilder.AppendLine('SKILL REFERENCE:');
+            PromptBuilder.Append(RoleSkill);
+        end;
+
+        ContextSkill := GetText(PayloadObject, 'contextSkill');
+        if ContextSkill <> '' then begin
+            PromptBuilder.AppendLine();
+            PromptBuilder.AppendLine();
+            PromptBuilder.AppendLine('CONTEXT SKILL:');
+            PromptBuilder.Append(ContextSkill);
+        end;
+
+        UserPrompt := Argument.GetUserPrompt();
+        if UserPrompt <> '' then begin
+            PromptBuilder.AppendLine();
+            PromptBuilder.AppendLine();
+            PromptBuilder.AppendLine('USER INSTRUCTIONS:');
+            PromptBuilder.Append(UserPrompt);
+        end;
+
+        SystemPrompt := PromptBuilder.ToText();
+    end;
+
+    local procedure BuildToolDefinitions(var AnthropicTools: JsonArray)
+    var
+        ServerTools: JsonArray;
+        ToolToken: JsonToken;
+        ToolObject: JsonObject;
+        AnthropicTool: JsonObject;
+        SchemaToken: JsonToken;
+    begin
+        ToolServer.ListTools(ServerTools);
+        foreach ToolToken in ServerTools do begin
+            ToolObject := ToolToken.AsObject();
+            Clear(AnthropicTool);
+            AnthropicTool.Add('name', GetText(ToolObject, 'name'));
+            AnthropicTool.Add('description', GetText(ToolObject, 'description'));
+            if ToolObject.Get('inputSchema', SchemaToken) then
+                AnthropicTool.Add('input_schema', SchemaToken);
+            AnthropicTools.Add(AnthropicTool);
+        end;
+    end;
+
+    local procedure ParseMessages(PayloadObject: JsonObject; var Messages: JsonArray)
+    var
+        MessagesToken: JsonToken;
+    begin
+        if PayloadObject.Get('messages', MessagesToken) then
+            if MessagesToken.IsArray() then
+                Messages := MessagesToken.AsArray();
+    end;
+
+    local procedure ConvertToolResults(ToolResultsJson: Text; var AnthropicResults: JsonArray)
+    var
+        ResultsArray: JsonArray;
+        ResultToken: JsonToken;
+        ResultObj: JsonObject;
+        AnthropicResult: JsonObject;
+        ResultText: Text;
+    begin
+        if not ResultsArray.ReadFrom(ToolResultsJson) then
+            exit;
+        foreach ResultToken in ResultsArray do begin
+            if not ResultToken.IsObject() then
+                continue;
+            ResultObj := ResultToken.AsObject();
+            Clear(AnthropicResult);
+            AnthropicResult.Add('type', 'tool_result');
+            AnthropicResult.Add('tool_use_id', GetText(ResultObj, 'id'));
+            ResultText := ChatUtils.TruncateContent(GetText(ResultObj, 'result'), 0);
+            AnthropicResult.Add('content', ResultText);
+            if GetBool(ResultObj, 'isError') then
+                AnthropicResult.Add('is_error', true);
+            AnthropicResults.Add(AnthropicResult);
+        end;
+    end;
+
+    local procedure BuildToolCallsResponse(ContentArray: JsonArray; Messages: JsonArray; Model: Text; SystemPrompt: Text; Usage: JsonObject) ResponseJson: Text
+    var
+        ResponseObject: JsonObject;
+        ToolCalls: JsonArray;
+        StateObject: JsonObject;
+        BlockToken: JsonToken;
+        BlockObject: JsonObject;
+        ToolCall: JsonObject;
+        InputToken: JsonToken;
+        StateText: Text;
+    begin
+        foreach BlockToken in ContentArray do begin
+            if not BlockToken.IsObject() then
+                continue;
+            BlockObject := BlockToken.AsObject();
+            if GetText(BlockObject, 'type') <> 'tool_use' then
+                continue;
+            Clear(ToolCall);
+            ToolCall.Add('id', GetText(BlockObject, 'id'));
+            ToolCall.Add('name', GetText(BlockObject, 'name'));
+            if BlockObject.Get('input', InputToken) then
+                ToolCall.Add('arguments', InputToken);
+            ToolCalls.Add(ToolCall);
+        end;
+
+        StateObject.Add('messages', Messages);
+        StateObject.Add('model', Model);
+        StateObject.Add('systemPrompt', SystemPrompt);
+        StateObject.WriteTo(StateText);
+
+        ResponseObject.Add('type', 'tool_calls');
+        ResponseObject.Add('toolCalls', ToolCalls);
+        ResponseObject.Add('conversationState', StateText);
+        if Usage.Keys().Count() > 0 then
+            ResponseObject.Add('usage', Usage);
+        ResponseObject.WriteTo(ResponseJson);
+    end;
+
+    local procedure BuildSuccessResponse(Reply: Text; Usage: JsonObject) ResponseJson: Text
+    var
+        ResponseObject: JsonObject;
+    begin
+        ResponseObject.Add('type', 'reply');
+        ResponseObject.Add('reply', Reply);
+        if Usage.Keys().Count() > 0 then
+            ResponseObject.Add('usage', Usage);
+        ResponseObject.WriteTo(ResponseJson);
+    end;
+
+    local procedure BuildErrorResponse(ErrorMessage: Text) ResponseJson: Text
+    var
+        ErrorObject: JsonObject;
+    begin
+        ErrorObject.Add('error', ErrorMessage);
+        ErrorObject.WriteTo(ResponseJson);
+    end;
+
+    local procedure ExtractText(Response: JsonObject) ResultText: Text
+    var
+        ContentToken: JsonToken;
+        BlockToken: JsonToken;
+        BlockObject: JsonObject;
+        TypeToken: JsonToken;
+        TextToken: JsonToken;
+    begin
+        if not Response.Get('content', ContentToken) then
+            exit('');
+        if not ContentToken.IsArray() then
+            exit('');
+        foreach BlockToken in ContentToken.AsArray() do begin
+            BlockObject := BlockToken.AsObject();
+            if BlockObject.Get('type', TypeToken) then
+                if TypeToken.AsValue().AsText() = 'text' then
+                    if BlockObject.Get('text', TextToken) then
+                        ResultText += TextToken.AsValue().AsText();
+        end;
+    end;
+
+    local procedure GetErrorDetail(ResponseText: Text): Text
+    var
+        ErrorObject: JsonObject;
+        ErrorToken: JsonToken;
+        MessageToken: JsonToken;
+    begin
+        if ErrorObject.ReadFrom(ResponseText) then
+            if ErrorObject.Get('error', ErrorToken) then
+                if ErrorToken.AsObject().Get('message', MessageToken) then
+                    exit(MessageToken.AsValue().AsText());
+        exit(CopyStr(ResponseText, 1, 1000));
+    end;
+
+    local procedure GetText(Source: JsonObject; PropertyName: Text): Text
+    var
+        Token: JsonToken;
+    begin
+        if Source.Get(PropertyName, Token) then
+            if Token.IsValue() then
+                exit(Token.AsValue().AsText());
+    end;
+
+    local procedure GetBool(Source: JsonObject; PropertyName: Text): Boolean
+    var
+        Token: JsonToken;
+    begin
+        if Source.Get(PropertyName, Token) then
+            if Token.IsValue() then
+                exit(Token.AsValue().AsBoolean());
+    end;
+}

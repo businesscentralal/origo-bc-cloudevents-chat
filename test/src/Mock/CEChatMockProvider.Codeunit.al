@@ -4,8 +4,6 @@ using Origo.APP.CloudEvents;
 
 /// <summary>
 /// Creates and manages a mock MCP Chat Role for testing.
-/// Inserts a test role with Custom LLM provider and provides
-/// helpers to set up per-user and service keys.
 /// </summary>
 codeunit 95902 "CE Chat Mock Provider ori"
 {
@@ -14,7 +12,6 @@ codeunit 95902 "CE Chat Mock Provider ori"
                   tabledata "CE Chat Service Gate ori" = RIMD;
 
     var
-        ProviderBase: Codeunit "CE Chat Provider Base ori";
         MockRoleCode: Code[20];
 
     procedure Create(): Code[20]
@@ -41,25 +38,6 @@ codeunit 95902 "CE Chat Mock Provider ori"
         MCPChatRole.Insert();
 
         exit(MockRoleCode);
-    end;
-
-    [NonDebuggable]
-    procedure SetUserKey(ApiKey: Text)
-    begin
-        if ApiKey = '' then
-            ProviderBase.ClearUserKey()
-        else
-            ProviderBase.SaveUserApiKey(ApiKey);
-    end;
-
-    [NonDebuggable]
-    procedure SetServiceKey(ApiKey: Text)
-    begin
-        if ApiKey = '' then begin
-            if IsolatedStorage.Contains('CE_LLM_Svc', DataScope::Company) then
-                IsolatedStorage.Delete('CE_LLM_Svc', DataScope::Company);
-        end else
-            ProviderBase.SaveServiceKey(ApiKey);
     end;
 
     procedure SetAsDefault()
@@ -89,13 +67,30 @@ codeunit 95902 "CE Chat Mock Provider ori"
         MCPChatRole.Get(MockRoleCode);
     end;
 
+    procedure BuildArgument(var TempArg: Record "MCP Chat Argument ori" temporary)
+    var
+        MCPChatRole: Record "MCP Chat Role ori";
+    begin
+        MCPChatRole.Get(MockRoleCode);
+        TempArg.Init();
+        TempArg."Role SystemId" := MCPChatRole.SystemId;
+        TempArg."Base URL" := MCPChatRole."Base URL";
+        TempArg.Model := MCPChatRole.Model;
+        TempArg."Timeout Ms" := MCPChatRole."Timeout Seconds" * 1000;
+        TempArg."Max Tokens" := MCPChatRole."Max Tokens";
+    end;
+
+    [NonDebuggable]
+    procedure BuildArgumentWithKey(var TempArg: Record "MCP Chat Argument ori" temporary; ApiKey: Text)
+    begin
+        BuildArgument(TempArg);
+        TempArg.SetApiKey(ApiKey);
+    end;
+
     procedure Cleanup()
     var
         MCPChatRole: Record "MCP Chat Role ori";
     begin
-        ProviderBase.ClearUserKey();
-        if IsolatedStorage.Contains('CE_LLM_Svc', DataScope::Company) then
-            IsolatedStorage.Delete('CE_LLM_Svc', DataScope::Company);
         if MCPChatRole.Get(MockRoleCode) then
             MCPChatRole.Delete();
     end;

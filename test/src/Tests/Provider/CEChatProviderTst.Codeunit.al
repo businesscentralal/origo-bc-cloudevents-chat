@@ -4,7 +4,7 @@ using Origo.APP.CloudEvents;
 using System.TestLibraries.Utilities;
 
 /// <summary>
-/// Tests for API key management via ProviderBase.
+/// Tests for provider base configuration helpers using MCP Chat Argument.
 /// </summary>
 codeunit 95903 "CE Chat Provider Tst ori"
 {
@@ -13,137 +13,86 @@ codeunit 95903 "CE Chat Provider Tst ori"
 
     var
         Assert: Codeunit "Library Assert";
-        MockProvider: Codeunit "CE Chat Mock Provider ori";
-        IsInitialized: Boolean;
-
-    local procedure Initialize()
-    var
-        CEUserSetup: Record "CE User Setup ori";
-    begin
-        if IsInitialized then
-            exit;
-        // Clear user-level role to ensure default role resolution
-        if CEUserSetup.Get(UserSecurityId()) then begin
-            CEUserSetup."MCP Chat Role Code" := '';
-            CEUserSetup.Modify();
-        end;
-        MockProvider.Create();
-        MockProvider.SetServiceKey('test-key-12345');
-        MockProvider.SetAsDefault();
-        IsInitialized := true;
-    end;
-
-    [Test]
-    procedure GetApiKey_WithUserKey_ReturnsUserKey()
-    var
-        ProviderBase: Codeunit "CE Chat Provider Base ori";
-    begin
-        // [GIVEN] A mock role with a per-user key
-        Initialize();
-        MockProvider.SetUserKey('user-key-abc');
-
-        // [WHEN/THEN] GetApiKey returns the user key
-        Assert.AreEqual('user-key-abc', ProviderBase.GetApiKey(), 'Should return user key');
-
-        // [CLEANUP]
-        MockProvider.SetUserKey('');
-    end;
-
-    [Test]
-    procedure GetApiKey_UserKeyTakesPriority()
-    var
-        ProviderBase: Codeunit "CE Chat Provider Base ori";
-    begin
-        // [GIVEN] Both user and service keys exist
-        Initialize();
-        MockProvider.SetUserKey('user-key-priority');
-
-        // [WHEN/THEN] User key takes priority
-        Assert.AreEqual('user-key-priority', ProviderBase.GetApiKey(), 'User key should take priority over service key');
-
-        // [CLEANUP]
-        MockProvider.SetUserKey('');
-    end;
 
     [Test]
     procedure IsConfigured_WithKeyAndUrl_ReturnsTrue()
     var
+        MockProvider: Codeunit "CE Chat Mock Provider ori";
         ProviderBase: Codeunit "CE Chat Provider Base ori";
+        TempArg: Record "MCP Chat Argument ori" temporary;
     begin
-        // [GIVEN] A configured role with service key and base URL
-        Initialize();
-
-        // [WHEN/THEN] IsConfigured returns true
-        Assert.IsTrue(ProviderBase.IsConfigured(''), 'Should be configured with key and URL');
+        MockProvider.Create();
+        MockProvider.BuildArgumentWithKey(TempArg, 'test-key');
+        Assert.IsTrue(ProviderBase.IsConfigured(TempArg, ''), 'Should be configured with key and URL');
+        MockProvider.Cleanup();
     end;
 
     [Test]
     procedure IsConfigured_WithoutKey_ReturnsFalse()
     var
         ProviderBase: Codeunit "CE Chat Provider Base ori";
+        TempArg: Record "MCP Chat Argument ori" temporary;
     begin
-        // [GIVEN] No keys stored (fresh state, no Initialize)
-        ProviderBase.SaveUserApiKey('');
-        ProviderBase.SaveServiceKey('');
+        TempArg.Init();
+        TempArg."Base URL" := 'https://mock.test.local';
+        Assert.IsFalse(ProviderBase.IsConfigured(TempArg, ''), 'Should not be configured without key');
+    end;
 
-        // [WHEN/THEN] IsConfigured returns false without any key
-        Assert.IsFalse(ProviderBase.IsConfigured('https://mock.test.local'), 'Should not be configured without key');
-
-        // [CLEANUP] — restore for other tests
-        ProviderBase.SaveServiceKey('test-key-12345');
+    [Test]
+    procedure IsConfigured_WithKeyNoUrl_UsesDefault()
+    var
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
+        TempArg: Record "MCP Chat Argument ori" temporary;
+    begin
+        TempArg.Init();
+        TempArg.SetApiKey('some-key');
+        Assert.IsTrue(ProviderBase.IsConfigured(TempArg, 'https://default.com'),
+            'Should be configured with key and default URL');
     end;
 
     [Test]
     procedure GetTimeoutMs_RoleValue_Converts()
     var
-        MCPChatRole: Record "MCP Chat Role ori";
+        MockProvider: Codeunit "CE Chat Mock Provider ori";
         ProviderBase: Codeunit "CE Chat Provider Base ori";
+        TempArg: Record "MCP Chat Argument ori" temporary;
     begin
-        // [GIVEN] A role with timeout = 60 seconds
-        Initialize();
-        MockProvider.GetRecord(MCPChatRole);
-
-        // [WHEN/THEN] GetTimeoutMs returns milliseconds
-        Assert.AreEqual(60000, ProviderBase.GetTimeoutMs(MCPChatRole, 120), 'Should convert 60s to 60000ms');
+        MockProvider.Create();
+        MockProvider.BuildArgument(TempArg);
+        Assert.AreEqual(60000, ProviderBase.GetTimeoutMs(TempArg, 120000), 'Should use role timeout 60s = 60000ms');
+        MockProvider.Cleanup();
     end;
 
     [Test]
     procedure GetTimeoutMs_ZeroRole_UsesDefault()
     var
-        MCPChatRole: Record "MCP Chat Role ori";
         ProviderBase: Codeunit "CE Chat Provider Base ori";
+        TempArg: Record "MCP Chat Argument ori" temporary;
     begin
-        // [GIVEN] A role with timeout = 0
-        MCPChatRole.Init();
-
-        // [WHEN/THEN] Default is used
-        Assert.AreEqual(120000, ProviderBase.GetTimeoutMs(MCPChatRole, 120), 'Should use default 120s = 120000ms');
+        TempArg.Init();
+        Assert.AreEqual(120000, ProviderBase.GetTimeoutMs(TempArg, 120000), 'Should use default');
     end;
 
     [Test]
     procedure GetMaxTokens_RoleValue_Used()
     var
-        MCPChatRole: Record "MCP Chat Role ori";
+        MockProvider: Codeunit "CE Chat Mock Provider ori";
         ProviderBase: Codeunit "CE Chat Provider Base ori";
+        TempArg: Record "MCP Chat Argument ori" temporary;
     begin
-        // [GIVEN] A role with max tokens = 2048
-        Initialize();
-        MockProvider.GetRecord(MCPChatRole);
-
-        // [WHEN/THEN] Role value is used
-        Assert.AreEqual(2048, ProviderBase.GetMaxTokens(MCPChatRole, 4096), 'Should use role value');
+        MockProvider.Create();
+        MockProvider.BuildArgument(TempArg);
+        Assert.AreEqual(2048, ProviderBase.GetMaxTokens(TempArg, 4096), 'Should use role value');
+        MockProvider.Cleanup();
     end;
 
     [Test]
     procedure GetMaxTokens_ZeroRole_UsesDefault()
     var
-        MCPChatRole: Record "MCP Chat Role ori";
         ProviderBase: Codeunit "CE Chat Provider Base ori";
+        TempArg: Record "MCP Chat Argument ori" temporary;
     begin
-        // [GIVEN] A role with max tokens = 0
-        MCPChatRole.Init();
-
-        // [WHEN/THEN] Default is used
-        Assert.AreEqual(4096, ProviderBase.GetMaxTokens(MCPChatRole, 4096), 'Should use default');
+        TempArg.Init();
+        Assert.AreEqual(4096, ProviderBase.GetMaxTokens(TempArg, 4096), 'Should use default');
     end;
 }

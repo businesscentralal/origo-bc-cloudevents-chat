@@ -50,7 +50,7 @@
     "95908|Complete_MockedResponse_ReturnsText": 0,
     "95908|Complete_MockError_RaisesError": 0,
     "95908|Complete_WithSystemPrompt_Succeeds": 0,
-    "95908|ExtractText_ContentIsNull_ReturnsEmpty": 1,
+    "95908|ExtractText_ContentIsNull_ReturnsEmpty": 0,
     "95908|ExtractText_ContentArray_ReturnsEmpty": 0,
     "95908|ParseTokenUsage_StandardFormat": 0,
     "95908|ParseTokenUsage_MissingUsage_ReturnsZero": 0,

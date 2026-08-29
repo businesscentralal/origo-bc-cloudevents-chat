@@ -438,7 +438,8 @@ codeunit 10035485 "CE Chat API Client ori"
         if not MessageToken.AsObject().Get('content', ContentToken) then
             exit('');
         if ContentToken.IsValue() then
-            ResultText := ContentToken.AsValue().AsText();
+            if not ContentToken.AsValue().IsNull() then
+                ResultText := ContentToken.AsValue().AsText();
     end;
 
     local procedure ResolveModel(Model: Text): Text

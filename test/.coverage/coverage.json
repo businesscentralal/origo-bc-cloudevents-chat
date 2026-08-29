@@ -39,6 +39,22 @@
     "95906|ServiceGate_WritePermission_WithPermissionsDisabled": 0,
     "95906|ProviderBase_HasServiceKeyPermission_WithPermissionsDisabled": 0,
     "95906|ServiceGate_WritePermission_WithRestrictivePermissions": 0,
-    "95906|ServiceGate_Table_IsAccessible": 0
+    "95906|ServiceGate_Table_IsAccessible": 0,
+    "95907|AttachFiles_AddsImageUrlBlock": 0,
+    "95907|AttachFiles_PdfUsesFileBlock": 0,
+    "95907|AttachFiles_NoFiles_LeavesMessageUnchanged": 0,
+    "95907|AttachFiles_PreservesSystemMessage": 0,
+    "95907|ExtractText_StandardResponse": 0,
+    "95907|ExtractText_EmptyChoices_ReturnsEmpty": 0,
+    "95907|ExtractText_NoChoices_ReturnsEmpty": 0,
+    "95908|Complete_MockedResponse_ReturnsText": 0,
+    "95908|Complete_MockError_RaisesError": 0,
+    "95908|Complete_WithSystemPrompt_Succeeds": 0,
+    "95908|ExtractText_ContentIsNull_ReturnsEmpty": 1,
+    "95908|ExtractText_ContentArray_ReturnsEmpty": 0,
+    "95908|ParseTokenUsage_StandardFormat": 0,
+    "95908|ParseTokenUsage_MissingUsage_ReturnsZero": 0,
+    "95908|ParseTokenUsage_InvalidJson_ReturnsZero": 0,
+    "95903|IsConfigured_WithKeyNoUrl_UsesDefault": 0
   }
 }

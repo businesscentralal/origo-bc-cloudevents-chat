@@ -35,6 +35,8 @@ codeunit 10035505 "CE Chat Anthropic Impl ori" implements "MCP Chat Role Provide
                 Argument.SetResultText(DoBuildConfigJson(Argument));
             ProcType::SendChatMessage:
                 Argument.SetResultText(DoSendChatMessage(Argument));
+            ProcType::CompletePrompt:
+                Argument.SetResultText(DoCompletePrompt(Argument));
             ProcType::ContinueWithToolResults:
                 Argument.SetResultText(DoContinueWithToolResults(Argument));
             ProcType::GetAvailableModels:
@@ -115,6 +117,14 @@ codeunit 10035505 "CE Chat Anthropic Impl ori" implements "MCP Chat Role Provide
         AnthropicProxy: Codeunit "CE Chat Anthropic Proxy ori";
     begin
         exit(AnthropicProxy.SendChatMessage(Argument, Argument.GetPayload()));
+    end;
+
+    [NonDebuggable]
+    local procedure DoCompletePrompt(var Argument: Record "MCP Chat Argument ori" temporary): Text
+    var
+        AnthropicProxy: Codeunit "CE Chat Anthropic Proxy ori";
+    begin
+        exit(AnthropicProxy.CompletePrompt(Argument, Argument.GetPayload()));
     end;
 
     local procedure DoContinueWithToolResults(var Argument: Record "MCP Chat Argument ori" temporary): Text

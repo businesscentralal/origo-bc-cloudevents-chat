@@ -57,6 +57,129 @@ codeunit 10035506 "CE Chat Anthropic Proxy ori"
     end;
 
     [NonDebuggable]
+    internal procedure CompletePrompt(var Argument: Record "MCP Chat Argument ori" temporary; PayloadJson: Text): Text
+    var
+        PayloadObject: JsonObject;
+        Messages: JsonArray;
+        MessagesToken: JsonToken;
+        MessageToken: JsonToken;
+        Model: Text;
+        SystemPrompt: Text;
+        ApiKey: Text;
+    begin
+        if not PayloadObject.ReadFrom(PayloadJson) then
+            exit(BuildErrorResponse('Invalid payload JSON.'));
+
+        ApiKey := Argument.GetApiKey();
+        if ApiKey = '' then
+            exit(BuildErrorResponse('API key not configured.'));
+
+        Model := ProviderBase.GetModel(Argument, 'claude-sonnet-4-6');
+        SystemPrompt := GetText(PayloadObject, 'systemPrompt');
+
+        if PayloadObject.Get('messages', MessagesToken) then
+            if MessagesToken.IsArray() then
+                foreach MessageToken in MessagesToken.AsArray() do
+                    Messages.Add(MessageToken);
+
+        AttachFilesToAnthropicMessages(PayloadObject, Messages);
+
+        // Call API directly — skip TrimMessageHistory which would discard large file content
+        exit(CallAnthropicDirect(
+            Messages, Model, SystemPrompt, ApiKey,
+            ProviderBase.GetBaseUrl(Argument, DefaultBaseUrlTok),
+            ProviderBase.GetTimeoutMs(Argument, 300000),
+            ProviderBase.GetMaxTokens(Argument, 16384)));
+    end;
+
+    [NonDebuggable]
+    local procedure CallAnthropicDirect(var Messages: JsonArray; Model: Text; SystemPrompt: Text; ApiKey: Text; BaseUrl: Text; TimeoutMs: Integer; MaxTokens: Integer): Text
+    var
+        Response: JsonObject;
+        RequestBody: JsonObject;
+        UsageObject: JsonObject;
+        UsageToken: JsonToken;
+        Reply: Text;
+    begin
+        RequestBody.Add('model', Model);
+        RequestBody.Add('max_tokens', MaxTokens);
+        if SystemPrompt <> '' then
+            RequestBody.Add('system', SystemPrompt);
+        RequestBody.Add('messages', Messages);
+
+        if not TrySendMessages(BaseUrl, ApiKey, TimeoutMs, RequestBody, Response) then
+            exit(BuildErrorResponse(GetLastErrorText()));
+
+        if Response.Get('usage', UsageToken) then
+            if UsageToken.IsObject() then
+                UsageObject := UsageToken.AsObject();
+
+        Reply := ExtractText(Response);
+        exit(BuildSuccessResponse(Reply, UsageObject));
+    end;
+
+    local procedure AttachFilesToAnthropicMessages(PayloadObject: JsonObject; var Messages: JsonArray)
+    var
+        FilesToken: JsonToken;
+        FilesArray: JsonArray;
+        FileToken: JsonToken;
+        FileObj: JsonObject;
+        ContentArray: JsonArray;
+        TextBlock: JsonObject;
+        FileBlock: JsonObject;
+        Source: JsonObject;
+        LastToken: JsonToken;
+        LastMessage: JsonObject;
+        NewMessage: JsonObject;
+        UserText: Text;
+        MimeType: Text;
+        LastIndex: Integer;
+    begin
+        if not PayloadObject.Get('files', FilesToken) then
+            exit;
+        FilesArray := FilesToken.AsArray();
+        if FilesArray.Count() = 0 then
+            exit;
+
+        LastIndex := Messages.Count() - 1;
+        if LastIndex < 0 then
+            exit;
+        Messages.Get(LastIndex, LastToken);
+        if not LastToken.IsObject() then
+            exit;
+        LastMessage := LastToken.AsObject();
+
+        UserText := GetText(LastMessage, 'content');
+        foreach FileToken in FilesArray do begin
+            if not FileToken.IsObject() then
+                continue;
+            FileObj := FileToken.AsObject();
+            MimeType := GetText(FileObj, 'mimeType');
+            Clear(Source);
+            Source.Add('type', 'base64');
+            Source.Add('media_type', MimeType);
+            Source.Add('data', GetText(FileObj, 'data'));
+            Clear(FileBlock);
+            if MimeType.StartsWith('image/') then
+                FileBlock.Add('type', 'image')
+            else
+                FileBlock.Add('type', 'document');
+            FileBlock.Add('source', Source);
+            ContentArray.Add(FileBlock);
+        end;
+
+        TextBlock.Add('type', 'text');
+        TextBlock.Add('text', UserText);
+        ContentArray.Add(TextBlock);
+
+        // Replace the last message — JsonArray.Get returns a copy
+        Messages.RemoveAt(LastIndex);
+        NewMessage.Add('role', 'user');
+        NewMessage.Add('content', ContentArray);
+        Messages.Add(NewMessage);
+    end;
+
+    [NonDebuggable]
     internal procedure ContinueWithToolResults(var Argument: Record "MCP Chat Argument ori" temporary; ConversationState: Text; ToolResultsJson: Text): Text
     var
         StateObject: JsonObject;

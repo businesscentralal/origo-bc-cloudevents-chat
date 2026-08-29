@@ -125,4 +125,89 @@ codeunit 10035501 "CE Chat Provider Base ori"
     local procedure OnCheckHttpClientAllowed(var Handled: Boolean; var Allowed: Boolean)
     begin
     end;
+
+    /// <summary>
+    /// If the payload contains a files array, converts the last user message
+    /// from plain text to a multi-modal content array (OpenAI format).
+    /// </summary>
+    internal procedure AttachFilesToMessages(PayloadObject: JsonObject; var Messages: JsonArray)
+    var
+        FilesToken: JsonToken;
+        FilesArray: JsonArray;
+        FileToken: JsonToken;
+        ContentArray: JsonArray;
+        TextBlock: JsonObject;
+        FileBlock: JsonObject;
+        LastToken: JsonToken;
+        LastMessage: JsonObject;
+        NewMessage: JsonObject;
+        UserText: Text;
+        LastIndex: Integer;
+    begin
+        if not PayloadObject.Get('files', FilesToken) then
+            exit;
+        if not FilesToken.IsArray() then
+            exit;
+        FilesArray := FilesToken.AsArray();
+        if FilesArray.Count() = 0 then
+            exit;
+
+        LastIndex := Messages.Count() - 1;
+        if LastIndex < 0 then
+            exit;
+        Messages.Get(LastIndex, LastToken);
+        if not LastToken.IsObject() then
+            exit;
+        LastMessage := LastToken.AsObject();
+
+        UserText := GetJsonTextInternal(LastMessage, 'content');
+        TextBlock.Add('type', 'text');
+        TextBlock.Add('text', UserText);
+        ContentArray.Add(TextBlock);
+
+        foreach FileToken in FilesArray do
+            if FileToken.IsObject() then begin
+                FileBlock := BuildOpenAIFileBlock(FileToken.AsObject());
+                ContentArray.Add(FileBlock);
+                Clear(FileBlock);
+            end;
+
+        // Replace the last message — JsonArray.Get returns a copy, not a reference
+        Messages.RemoveAt(LastIndex);
+        NewMessage.Add('role', 'user');
+        NewMessage.Add('content', ContentArray);
+        Messages.Add(NewMessage);
+    end;
+
+    local procedure BuildOpenAIFileBlock(FileObj: JsonObject) Block: JsonObject
+    var
+        DataUriTok: Label 'data:%1;base64,%2', Locked = true;
+        ImageUrl: JsonObject;
+        FileContent: JsonObject;
+        MimeType: Text;
+        DataUri: Text;
+    begin
+        MimeType := GetJsonTextInternal(FileObj, 'mimeType');
+        DataUri := StrSubstNo(DataUriTok, MimeType, GetJsonTextInternal(FileObj, 'data'));
+
+        if MimeType.StartsWith('image/') then begin
+            ImageUrl.Add('url', DataUri);
+            Block.Add('type', 'image_url');
+            Block.Add('image_url', ImageUrl);
+        end else begin
+            FileContent.Add('filename', GetJsonTextInternal(FileObj, 'fileName'));
+            FileContent.Add('file_data', DataUri);
+            Block.Add('type', 'file');
+            Block.Add('file', FileContent);
+        end;
+    end;
+
+    local procedure GetJsonTextInternal(JObject: JsonObject; PropertyName: Text): Text
+    var
+        JToken: JsonToken;
+    begin
+        if JObject.Get(PropertyName, JToken) then
+            if JToken.IsValue() then
+                exit(JToken.AsValue().AsText());
+    end;
 }

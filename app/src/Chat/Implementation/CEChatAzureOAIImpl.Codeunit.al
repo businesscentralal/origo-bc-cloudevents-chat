@@ -32,6 +32,8 @@ codeunit 10035503 "CE Chat Azure OAI Impl ori" implements "MCP Chat Role Provide
                 Argument.SetResultText(DoBuildConfigJson(Argument));
             ProcType::SendChatMessage:
                 Argument.SetResultText(DoSendChatMessage(Argument));
+            ProcType::CompletePrompt:
+                Argument.SetResultText(DoCompletePrompt(Argument));
             ProcType::ContinueWithToolResults:
                 Argument.SetResultText(DoContinueWithToolResults(Argument));
             ProcType::GetAvailableModels:
@@ -116,6 +118,73 @@ codeunit 10035503 "CE Chat Azure OAI Impl ori" implements "MCP Chat Role Provide
     begin
         SetAzureChatPath(Argument);
         exit(LLMChatProxy.SendChatMessage(Argument, Argument.GetPayload(), AuthHeaderNameTok));
+    end;
+
+    [NonDebuggable]
+    local procedure DoCompletePrompt(var Argument: Record "MCP Chat Argument ori" temporary): Text
+    var
+        ApiClient: Codeunit "CE Chat API Client ori";
+        RequestBody: JsonObject;
+        PayloadObject: JsonObject;
+        Messages: JsonArray;
+        SystemMsg: JsonObject;
+        Response: JsonObject;
+        ResponseObj: JsonObject;
+        SystemPrompt: Text;
+        ChatUrl: Text;
+        ResultText: Text;
+        ApiVersionTok: Label '2024-12-01-preview', Locked = true;
+        ChatPathTok: Label '/openai/deployments/%1/chat/completions?api-version=%2', Locked = true;
+    begin
+        ProviderBase.EnsureHttpClientAllowed();
+        if not PayloadObject.ReadFrom(Argument.GetPayload()) then
+            exit(BuildErrorJson('Invalid payload JSON.'));
+
+        SystemPrompt := GetJsonText(PayloadObject, 'systemPrompt');
+        if SystemPrompt <> '' then begin
+            SystemMsg.Add('role', 'system');
+            SystemMsg.Add('content', SystemPrompt);
+            Messages.Add(SystemMsg);
+        end;
+        AppendPayloadMessages(PayloadObject, Messages);
+        ProviderBase.AttachFilesToMessages(PayloadObject, Messages);
+
+        RequestBody.Add('model', ProviderBase.GetModel(Argument, ''));
+        RequestBody.Add('max_completion_tokens', ProviderBase.GetMaxTokens(Argument, 16384));
+        RequestBody.Add('messages', Messages);
+
+        ChatUrl := ProviderBase.GetBaseUrl(Argument, '')
+            + StrSubstNo(ChatPathTok, ProviderBase.GetModel(Argument, ''), ApiVersionTok);
+        Response := ApiClient.SendToEndpoint(ChatUrl, AuthHeaderNameTok, Argument.GetApiKey(),
+            ProviderBase.GetTimeoutMs(Argument, 120000), RequestBody);
+        ApiClient.LogLastRequest();
+
+        ResponseObj.Add('reply', ApiClient.ExtractText(Response));
+        ResponseObj.WriteTo(ResultText);
+        exit(ResultText);
+    end;
+
+    local procedure AppendPayloadMessages(PayloadObject: JsonObject; var Messages: JsonArray)
+    var
+        MessagesToken: JsonToken;
+        MessageToken: JsonToken;
+    begin
+        if not PayloadObject.Get('messages', MessagesToken) then
+            exit;
+        if not MessagesToken.IsArray() then
+            exit;
+        foreach MessageToken in MessagesToken.AsArray() do
+            Messages.Add(MessageToken);
+    end;
+
+    local procedure BuildErrorJson(ErrorMessage: Text): Text
+    var
+        ErrorObj: JsonObject;
+        Result: Text;
+    begin
+        ErrorObj.Add('error', ErrorMessage);
+        ErrorObj.WriteTo(Result);
+        exit(Result);
     end;
 
     local procedure DoContinueWithToolResults(var Argument: Record "MCP Chat Argument ori" temporary): Text

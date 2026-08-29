@@ -21,5 +21,7 @@ permissionset 10035486 "CE Chat Obj ori"
         codeunit "CE Chat Anthropic Impl ori" = X,
         codeunit "CE Chat Anthropic Proxy ori" = X,
         codeunit "CE Chat API Client ori" = X,
-        codeunit "CE Chat Tool Runner ori" = X;
+        codeunit "CE Chat Tool Runner ori" = X,
+        codeunit "CE Chat Wizard Reg. ori" = X,
+        page "CE Chat Setup Wizard ori" = X;
 }

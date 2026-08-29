@@ -462,9 +462,14 @@ codeunit 10035485 "CE Chat API Client ori"
         MessageToken: JsonToken;
     begin
         if ErrorObject.ReadFrom(ResponseText) then
-            if ErrorObject.Get('error', ErrorToken) then
-                if ErrorToken.AsObject().Get('message', MessageToken) then
-                    exit(MessageToken.AsValue().AsText());
+            if ErrorObject.Get('error', ErrorToken) then begin
+                if ErrorToken.IsValue() then
+                    exit(ErrorToken.AsValue().AsText());
+                if ErrorToken.IsObject() then
+                    if ErrorToken.AsObject().Get('message', MessageToken) then
+                        if MessageToken.IsValue() then
+                            exit(MessageToken.AsValue().AsText());
+            end;
         exit(CopyStr(ResponseText, 1, 1000));
     end;
 

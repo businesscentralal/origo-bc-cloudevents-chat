@@ -9,7 +9,7 @@
   "help": "https://origopublic.blob.core.windows.net/help/Origo Cloud Events Chat/bc28/en-US/index.html",
   "privacyStatement": "https://www.origo.is/um-origo/stefnur/personuverndarstefna",
   "EULA": "https://www.origo.is/skilmalar-og-oryggismal",
-  "applicationInsightsConnectionString": "InstrumentationKey=7cf7daa2-4294-46c3-8cc7-f59d5fbe0d9f;IngestionEndpoint=https://northeurope-2.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/;ApplicationId=e95b4554-f50c-4f17-83b9-3edbbdedb7ca",
+  "applicationInsightsConnectionString": "InstrumentationKey=9f926e90-2bcf-4fb6-b67e-a7aa488593da;IngestionEndpoint=https://northeurope-2.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/;ApplicationId=0e406897-d600-4c1c-9065-69bee2eb32ee",
   "contextSensitiveHelpUrl": "https://origopublic.blob.core.windows.net/help/Origo Cloud Events Chat/bc28/{0}/",
   "supportedLocales": [
     "en-US",

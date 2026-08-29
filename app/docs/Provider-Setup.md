@@ -21,9 +21,12 @@ The extension registers three Chat Provider options on the Core MCP Chat Role en
 
 | Chat Provider | Auth Header | Default Base URL | Use For |
 | ------------- | ----------- | ---------------- | ------- |
-| **OpenAI** | `Authorization: Bearer` | `https://api.openai.com` | OpenAI, Grok, Groq, Together, Mistral, DeepSeek, and other Bearer-auth endpoints |
+| **OpenAI** | `Authorization: Bearer` | `https://api.openai.com` | OpenAI, Groq, Together, Mistral, DeepSeek, Google Gemini (OpenAI mode), and other Bearer-auth endpoints |
 | **Azure OpenAI** | `api-key` | *(must configure)* | Azure OpenAI Service deployments |
 | **Custom LLM** | `x-api-key` | *(must configure)* | Ollama, vLLM, LM Studio, or any endpoint behind a reverse proxy with x-api-key auth |
+| **Anthropic** | `x-api-key` + `anthropic-version` | `https://api.anthropic.com` | Anthropic Claude models |
+| **xAI (Grok)** | `Authorization: Bearer` | `https://api.x.ai` | xAI Grok models with full file/document processing support |
+| **Google (Gemini)** | API key (URL param) | `https://generativelanguage.googleapis.com/v1beta` | Google Gemini models with native PDF/image processing |
 
 ---
 
@@ -74,9 +77,9 @@ Generate a key: `openssl rand -hex 32`
 | ----- | ----- |
 | Code | `GROK` |
 | Description | Grok (xAI) |
-| Chat Provider | OpenAI |
-| Base URL | `https://api.x.ai` |
-| Model | `grok-2` |
+| Chat Provider | xAI (Grok) |
+| Base URL | *(leave empty — defaults to `https://api.x.ai`)* |
+| Model | `grok-3` |
 
 **API Key:** Obtain from [console.x.ai](https://console.x.ai/)
 
@@ -84,6 +87,8 @@ Generate a key: `openssl rand -hex 32`
 2. Navigate to API Keys
 3. Create a new key
 4. Copy the key (starts with `xai-...`)
+
+**Note:** Use the **xAI (Grok)** provider for full document/PDF processing support. The OpenAI provider also works for text-only chat but does not support file attachments with Grok.
 
 **Pricing:** Pay-per-token. See [x.ai/api](https://x.ai/api)
 
@@ -197,6 +202,29 @@ Generate a key: `openssl rand -hex 32`
 
 ---
 
+### Google Gemini
+
+| Field | Value |
+| ----- | ----- |
+| Code | `GEMINI` |
+| Description | Google Gemini |
+| Chat Provider | Google (Gemini) |
+| Base URL | *(leave empty — defaults to `https://generativelanguage.googleapis.com/v1beta`)* |
+| Model | `gemini-2.5-flash` |
+
+**API Key:** Obtain from [aistudio.google.com/apikey](https://aistudio.google.com/apikey)
+
+1. Sign in with your Google account
+2. Click "Create API key"
+3. Select or create a Google Cloud project
+4. Copy the key
+
+**Note:** Use the **Google (Gemini)** provider for full document/PDF and image processing support. Text-only chat also works via the OpenAI provider with Google's OpenAI-compatible endpoint, but file attachments require the native Gemini API.
+
+**Pricing:** Free tier available. See [ai.google.dev/pricing](https://ai.google.dev/pricing)
+
+---
+
 ## Authentication Model
 
 Each Chat Provider supports two API key layers:
@@ -233,11 +261,13 @@ Not all models handle tool calling (function calling) well. These are tested and
 | Ollama | `qwen2.5:14b` | Excellent | Needs 16GB+ VRAM |
 | OpenAI | `gpt-4.1` | Excellent | Best overall |
 | OpenAI | `gpt-4o-mini` | Good | Lower cost |
-| Grok | `grok-2` | Excellent | Fast |
+| Grok | `grok-3` | Excellent | Fast, supports PDF via Responses API |
 | Groq | `llama-3.1-70b-versatile` | Good | Very fast inference |
 | Mistral | `mistral-large-latest` | Excellent | Strong reasoning |
 | DeepSeek | `deepseek-chat` | Good | Cost-effective |
 | Azure | `gpt-4o` | Excellent | Enterprise compliance |
+| Anthropic | `claude-sonnet-4-6` | Excellent | Best document processing |
+| Google | `gemini-2.5-flash` | Excellent | Fast, generous free tier |
 
 ---
 

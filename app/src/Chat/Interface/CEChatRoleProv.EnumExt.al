@@ -28,4 +28,14 @@ enumextension 10035488 "CE Chat Role Prov." extends "MCP Chat Role Prov. ori"
         Caption = 'Anthropic', Comment = 'is-IS=Anthropic';
         Implementation = "MCP Chat Role Provider ori" = "CE Chat Anthropic Impl ori";
     }
+    value(10035489; "xAI")
+    {
+        Caption = 'xAI (Grok)', Comment = 'is-IS=xAI (Grok)';
+        Implementation = "MCP Chat Role Provider ori" = "CE Chat xAI Impl ori";
+    }
+    value(10035490; "Google")
+    {
+        Caption = 'Google (Gemini)', Comment = 'is-IS=Google (Gemini)';
+        Implementation = "MCP Chat Role Provider ori" = "CE Chat Gemini Impl ori";
+    }
 }

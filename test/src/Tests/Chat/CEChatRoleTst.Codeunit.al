@@ -28,9 +28,9 @@ codeunit 95904 "CE Chat Role Tst ori"
     [Test]
     procedure GetBaseUrl_RoleOverridesDefault()
     var
+        TempArg: Record "MCP Chat Argument ori" temporary;
         MockProvider: Codeunit "CE Chat Mock Provider ori";
         ProviderBase: Codeunit "CE Chat Provider Base ori";
-        TempArg: Record "MCP Chat Argument ori" temporary;
     begin
         MockProvider.Create();
         MockProvider.BuildArgument(TempArg);
@@ -42,8 +42,8 @@ codeunit 95904 "CE Chat Role Tst ori"
     [Test]
     procedure GetBaseUrl_EmptyRole_FallsBackToDefault()
     var
-        ProviderBase: Codeunit "CE Chat Provider Base ori";
         TempArg: Record "MCP Chat Argument ori" temporary;
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         TempArg.Init();
         Assert.AreEqual('https://default.com', ProviderBase.GetBaseUrl(TempArg, 'https://default.com'),
@@ -53,9 +53,9 @@ codeunit 95904 "CE Chat Role Tst ori"
     [Test]
     procedure GetModel_RoleOverridesDefault()
     var
+        TempArg: Record "MCP Chat Argument ori" temporary;
         MockProvider: Codeunit "CE Chat Mock Provider ori";
         ProviderBase: Codeunit "CE Chat Provider Base ori";
-        TempArg: Record "MCP Chat Argument ori" temporary;
     begin
         MockProvider.Create();
         MockProvider.BuildArgument(TempArg);

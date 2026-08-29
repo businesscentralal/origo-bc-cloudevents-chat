@@ -17,9 +17,9 @@ codeunit 95903 "CE Chat Provider Tst ori"
     [Test]
     procedure IsConfigured_WithKeyAndUrl_ReturnsTrue()
     var
+        TempArg: Record "MCP Chat Argument ori" temporary;
         MockProvider: Codeunit "CE Chat Mock Provider ori";
         ProviderBase: Codeunit "CE Chat Provider Base ori";
-        TempArg: Record "MCP Chat Argument ori" temporary;
     begin
         MockProvider.Create();
         MockProvider.BuildArgumentWithKey(TempArg, 'test-key');
@@ -30,8 +30,8 @@ codeunit 95903 "CE Chat Provider Tst ori"
     [Test]
     procedure IsConfigured_WithoutKey_ReturnsFalse()
     var
-        ProviderBase: Codeunit "CE Chat Provider Base ori";
         TempArg: Record "MCP Chat Argument ori" temporary;
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         TempArg.Init();
         TempArg."Base URL" := 'https://mock.test.local';
@@ -41,8 +41,8 @@ codeunit 95903 "CE Chat Provider Tst ori"
     [Test]
     procedure IsConfigured_WithKeyNoUrl_UsesDefault()
     var
-        ProviderBase: Codeunit "CE Chat Provider Base ori";
         TempArg: Record "MCP Chat Argument ori" temporary;
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         TempArg.Init();
         TempArg.SetApiKey('some-key');
@@ -53,9 +53,9 @@ codeunit 95903 "CE Chat Provider Tst ori"
     [Test]
     procedure GetTimeoutMs_RoleValue_Converts()
     var
+        TempArg: Record "MCP Chat Argument ori" temporary;
         MockProvider: Codeunit "CE Chat Mock Provider ori";
         ProviderBase: Codeunit "CE Chat Provider Base ori";
-        TempArg: Record "MCP Chat Argument ori" temporary;
     begin
         MockProvider.Create();
         MockProvider.BuildArgument(TempArg);
@@ -66,8 +66,8 @@ codeunit 95903 "CE Chat Provider Tst ori"
     [Test]
     procedure GetTimeoutMs_ZeroRole_UsesDefault()
     var
-        ProviderBase: Codeunit "CE Chat Provider Base ori";
         TempArg: Record "MCP Chat Argument ori" temporary;
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         TempArg.Init();
         Assert.AreEqual(120000, ProviderBase.GetTimeoutMs(TempArg, 120000), 'Should use default');
@@ -76,9 +76,9 @@ codeunit 95903 "CE Chat Provider Tst ori"
     [Test]
     procedure GetMaxTokens_RoleValue_Used()
     var
+        TempArg: Record "MCP Chat Argument ori" temporary;
         MockProvider: Codeunit "CE Chat Mock Provider ori";
         ProviderBase: Codeunit "CE Chat Provider Base ori";
-        TempArg: Record "MCP Chat Argument ori" temporary;
     begin
         MockProvider.Create();
         MockProvider.BuildArgument(TempArg);
@@ -89,8 +89,8 @@ codeunit 95903 "CE Chat Provider Tst ori"
     [Test]
     procedure GetMaxTokens_ZeroRole_UsesDefault()
     var
-        ProviderBase: Codeunit "CE Chat Provider Base ori";
         TempArg: Record "MCP Chat Argument ori" temporary;
+        ProviderBase: Codeunit "CE Chat Provider Base ori";
     begin
         TempArg.Init();
         Assert.AreEqual(4096, ProviderBase.GetMaxTokens(TempArg, 4096), 'Should use default');

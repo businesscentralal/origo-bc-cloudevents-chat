@@ -20,6 +20,7 @@ codeunit 10035506 "CE Chat Anthropic Proxy ori"
         MessagesPathTok: Label '%1/v1/messages', Locked = true;
         ModelsPathTok: Label '%1/v1/models?limit=100', Locked = true;
         DefaultBaseUrlTok: Label 'https://api.anthropic.com', Locked = true;
+        ServiceNameTok: Label 'LLM', Locked = true;
         CallFailedErr: Label 'Could not reach the Anthropic API. %1', Comment = '%1 = error detail, is-IS=Náði ekki sambandi við Anthropic API. %1';
         ApiStatusErr: Label 'Anthropic API returned status %1. %2', Comment = '%1 = status code, %2 = detail, is-IS=Anthropic API skilaði stöðu %1. %2';
         InvalidResponseErr: Label 'Received an invalid response from the Anthropic API.', Comment = 'is-IS=Ógilt svar barst frá Anthropic API.';
@@ -279,6 +280,7 @@ codeunit 10035506 "CE Chat Anthropic Proxy ori"
         RequestUrl: Text;
         RequestText: Text;
         ResponseText: Text;
+        StartTime: DateTime;
     begin
         RequestBody.WriteTo(RequestText);
         HttpContent.WriteFrom(RequestText);
@@ -293,6 +295,7 @@ codeunit 10035506 "CE Chat Anthropic Proxy ori"
         HttpClientVar.Timeout(TimeoutMs);
 
         RequestUrl := StrSubstNo(MessagesPathTok, BaseUrl);
+        StartTime := CurrentDateTime();
         if not HttpClientVar.Post(RequestUrl, HttpContent, HttpResponse) then
             Error(CallFailedErr, GetLastErrorText());
 
@@ -303,6 +306,9 @@ codeunit 10035506 "CE Chat Anthropic Proxy ori"
 
         if not Response.ReadFrom(ResponseText) then
             Error(InvalidResponseErr);
+
+        LogApiCall('messages', 'POST', RequestUrl,
+            HttpResponse.HttpStatusCode(), CurrentDateTime() - StartTime, RequestText, ResponseText);
     end;
 
     /// <summary>
@@ -318,12 +324,14 @@ codeunit 10035506 "CE Chat Anthropic Proxy ori"
         DataToken: JsonToken;
         RequestUrl: Text;
         ResponseText: Text;
+        StartTime: DateTime;
     begin
         DefaultHeaders := HttpClientVar.DefaultRequestHeaders();
         DefaultHeaders.Add('x-api-key', ApiKey);
         DefaultHeaders.Add('anthropic-version', AnthropicVersionTok);
 
         RequestUrl := StrSubstNo(ModelsPathTok, BaseUrl);
+        StartTime := CurrentDateTime();
         if not HttpClientVar.Get(RequestUrl, HttpResponse) then
             Error(CallFailedErr, GetLastErrorText());
 
@@ -338,6 +346,9 @@ codeunit 10035506 "CE Chat Anthropic Proxy ori"
         if Response.Get('data', DataToken) then
             if DataToken.IsArray() then
                 Models := DataToken.AsArray();
+
+        LogApiCall('models', 'GET', RequestUrl,
+            HttpResponse.HttpStatusCode(), CurrentDateTime() - StartTime, '', ResponseText);
     end;
 
     local procedure BuildSystemPrompt(PayloadObject: JsonObject; var Argument: Record "MCP Chat Argument ori" temporary) SystemPrompt: Text
@@ -550,5 +561,23 @@ codeunit 10035506 "CE Chat Anthropic Proxy ori"
         if Source.Get(PropertyName, Token) then
             if Token.IsValue() then
                 exit(Token.AsValue().AsBoolean());
+    end;
+
+    local procedure LogApiCall(Operation: Text[50]; HttpMethod: Text[10]; RequestUrl: Text; HttpStatus: Integer; Elapsed: Duration; RequestText: Text; ResponseText: Text)
+    var
+        CloudEventsSetup: Record "Cloud Events Setup ori";
+        Logger: Codeunit "CE Request Logger ori";
+    begin
+        CloudEventsSetup.SetLoadFields("Request Debug Mode");
+        if not CloudEventsSetup.Get() then
+            exit;
+        if not CloudEventsSetup."Request Debug Mode" then
+            exit;
+
+        Logger.Log(Operation, HttpMethod, RequestUrl, ServiceNameTok,
+            HttpStatus, Elapsed, true, '',
+            RequestText, ResponseText,
+            Enum::"CE Request Log Type ori"::"LLM ori");
+        Logger.Insert();
     end;
 }

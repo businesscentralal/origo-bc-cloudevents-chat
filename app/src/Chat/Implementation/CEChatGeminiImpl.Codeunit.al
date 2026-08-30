@@ -23,6 +23,7 @@ codeunit 10035509 "CE Chat Gemini Impl ori" implements "MCP Chat Role Provider o
         ApiKeyDocsUrlTok: Label 'https://aistudio.google.com/apikey', Locked = true;
         ApiKeyDocsLinkTextLbl: Label 'Get key from Google AI Studio', Comment = 'is-IS=Sækja lykil á Google AI Studio';
         ServiceKeyDescLbl: Label 'Shared keys are used by all users in this company who do not have a personal key.', Comment = 'is-IS=Sameiginlegir lyklar eru notaðir af öllum notendum í þessu fyrirtæki sem hafa ekki persónulegan lykil.';
+        ServiceNameTok: Label 'LLM', Locked = true;
         CallFailedErr: Label 'Could not reach the Google AI API. %1', Comment = '%1 = error detail, is-IS=Náði ekki sambandi við Google AI API. %1';
         ApiStatusErr: Label 'Google AI API returned status %1. %2', Comment = '%1 = status code, %2 = detail, is-IS=Google AI API skilaði stöðu %1. %2';
 
@@ -301,6 +302,9 @@ codeunit 10035509 "CE Chat Gemini Impl ori" implements "MCP Chat Role Provider o
         ContentHeaders: HttpHeaders;
         RequestText: Text;
         ResponseText: Text;
+        MaskedUrl: Text;
+        StartTime: DateTime;
+        KeyPos: Integer;
     begin
         RequestBody.WriteTo(RequestText);
         HttpContent.WriteFrom(RequestText);
@@ -310,6 +314,7 @@ codeunit 10035509 "CE Chat Gemini Impl ori" implements "MCP Chat Role Provider o
         ContentHeaders.Add('Content-Type', 'application/json');
         HttpClientVar.Timeout(TimeoutMs);
 
+        StartTime := CurrentDateTime();
         if not HttpClientVar.Post(Url, HttpContent, HttpResponse) then
             Error(CallFailedErr, GetLastErrorText());
 
@@ -319,6 +324,13 @@ codeunit 10035509 "CE Chat Gemini Impl ori" implements "MCP Chat Role Provider o
 
         if not Response.ReadFrom(ResponseText) then
             Error(CallFailedErr, 'Invalid response JSON.');
+
+        MaskedUrl := Url;
+        KeyPos := MaskedUrl.IndexOf('?key=');
+        if KeyPos > 0 then
+            MaskedUrl := CopyStr(MaskedUrl, 1, KeyPos + 4) + '***';
+        LogApiCall('generateContent', 'POST', MaskedUrl,
+            HttpResponse.HttpStatusCode(), CurrentDateTime() - StartTime, RequestText, ResponseText);
     end;
 
     local procedure GetOpenAICompatBaseUrl(var Argument: Record "MCP Chat Argument ori" temporary): Text
@@ -510,5 +522,23 @@ codeunit 10035509 "CE Chat Gemini Impl ori" implements "MCP Chat Role Provider o
         if JObject.Get(PropertyName, JToken) then
             if JToken.IsValue() then
                 exit(JToken.AsValue().AsText());
+    end;
+
+    local procedure LogApiCall(Operation: Text[50]; HttpMethod: Text[10]; RequestUrl: Text; HttpStatus: Integer; Elapsed: Duration; RequestText: Text; ResponseText: Text)
+    var
+        CloudEventsSetup: Record "Cloud Events Setup ori";
+        Logger: Codeunit "CE Request Logger ori";
+    begin
+        CloudEventsSetup.SetLoadFields("Request Debug Mode");
+        if not CloudEventsSetup.Get() then
+            exit;
+        if not CloudEventsSetup."Request Debug Mode" then
+            exit;
+
+        Logger.Log(Operation, HttpMethod, RequestUrl, ServiceNameTok,
+            HttpStatus, Elapsed, true, '',
+            RequestText, ResponseText,
+            Enum::"CE Request Log Type ori"::"LLM ori");
+        Logger.Insert();
     end;
 }

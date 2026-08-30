@@ -567,17 +567,23 @@ codeunit 10035506 "CE Chat Anthropic Proxy ori"
     /// <summary>
     /// After trimming, the array may start with an orphaned assistant or tool_result
     /// message whose matching counterpart was removed. Strip those leading messages
-    /// so the first message is always a plain user message.
+    /// but always keep at least the last 2 (the current tool_use/tool_result pair).
+    /// If the array still starts with an assistant message, prepend a synthetic user
+    /// message to satisfy Anthropic's "first message must be role=user" constraint.
     /// </summary>
     local procedure RemoveOrphanedToolMessages(var Messages: JsonArray)
     var
+        NewMessages: JsonArray;
         Token: JsonToken;
         MsgObj: JsonObject;
         ContentToken: JsonToken;
         FirstBlock: JsonToken;
+        SyntheticUser: JsonObject;
         Role: Text;
+        i: Integer;
     begin
-        while Messages.Count() > 0 do begin
+        // Never remove the last 2 messages — they are the current tool_use/tool_result pair
+        while Messages.Count() > 2 do begin
             Messages.Get(0, Token);
             if not Token.IsObject() then begin
                 Messages.RemoveAt(0);
@@ -608,6 +614,25 @@ codeunit 10035506 "CE Chat Anthropic Proxy ori"
             end;
             break;
         end;
+
+        if Messages.Count() = 0 then
+            exit;
+
+        Messages.Get(0, Token);
+        if not Token.IsObject() then
+            exit;
+        if GetText(Token.AsObject(), 'role') = 'user' then
+            exit;
+
+        // First message is assistant — prepend a synthetic user message
+        SyntheticUser.Add('role', 'user');
+        SyntheticUser.Add('content', 'Continue.');
+        NewMessages.Add(SyntheticUser);
+        for i := 0 to Messages.Count() - 1 do begin
+            Messages.Get(i, Token);
+            NewMessages.Add(Token);
+        end;
+        Messages := NewMessages;
     end;
 
     local procedure LogApiCall(Operation: Text[50]; HttpMethod: Text[10]; RequestUrl: Text; HttpStatus: Integer; Elapsed: Duration; RequestText: Text; ResponseText: Text)

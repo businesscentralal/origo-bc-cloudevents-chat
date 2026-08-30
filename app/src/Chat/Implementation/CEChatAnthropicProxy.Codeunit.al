@@ -231,6 +231,7 @@ codeunit 10035506 "CE Chat Anthropic Proxy ori"
     begin
         ChatUtils.CompactOlderToolResults(Messages, 5, 500);
         ChatUtils.TrimMessageHistory(Messages, 160000);
+        RemoveOrphanedToolMessages(Messages);
 
         RequestBody.Add('model', Model);
         RequestBody.Add('max_tokens', MaxTokens);
@@ -561,6 +562,52 @@ codeunit 10035506 "CE Chat Anthropic Proxy ori"
         if Source.Get(PropertyName, Token) then
             if Token.IsValue() then
                 exit(Token.AsValue().AsBoolean());
+    end;
+
+    /// <summary>
+    /// After trimming, the array may start with an orphaned assistant or tool_result
+    /// message whose matching counterpart was removed. Strip those leading messages
+    /// so the first message is always a plain user message.
+    /// </summary>
+    local procedure RemoveOrphanedToolMessages(var Messages: JsonArray)
+    var
+        Token: JsonToken;
+        MsgObj: JsonObject;
+        ContentToken: JsonToken;
+        FirstBlock: JsonToken;
+        Role: Text;
+    begin
+        while Messages.Count() > 0 do begin
+            Messages.Get(0, Token);
+            if not Token.IsObject() then begin
+                Messages.RemoveAt(0);
+                continue;
+            end;
+            MsgObj := Token.AsObject();
+            Role := GetText(MsgObj, 'role');
+
+            if Role = 'assistant' then begin
+                Messages.RemoveAt(0);
+                continue;
+            end;
+
+            if Role <> 'user' then
+                break;
+            if not MsgObj.Get('content', ContentToken) then
+                break;
+            if not ContentToken.IsArray() then
+                break;
+            if ContentToken.AsArray().Count() = 0 then
+                break;
+            ContentToken.AsArray().Get(0, FirstBlock);
+            if not FirstBlock.IsObject() then
+                break;
+            if GetText(FirstBlock.AsObject(), 'type') = 'tool_result' then begin
+                Messages.RemoveAt(0);
+                continue;
+            end;
+            break;
+        end;
     end;
 
     local procedure LogApiCall(Operation: Text[50]; HttpMethod: Text[10]; RequestUrl: Text; HttpStatus: Integer; Elapsed: Duration; RequestText: Text; ResponseText: Text)

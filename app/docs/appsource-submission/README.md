@@ -12,6 +12,39 @@ text comes from.
 
 ---
 
+## The short fields, ready to copy
+
+**Offer name** (max 200)
+
+```
+Origo Cloud Events Chat
+```
+
+**Search results summary** (max 100 — this is the line that shows in marketplace search
+results; 84 characters)
+
+```
+Ask Business Central questions in plain language and get answers from your live data.
+```
+
+**Search keywords** (max 3)
+
+```
+AI assistant
+Copilot
+Chat
+```
+
+**Products your app works with** (max 3)
+
+```
+Dynamics 365 Business Central
+```
+
+The long description lives in `PartnerCenter-Description.md`.
+
+---
+
 ## Partner Center, tab by tab
 
 | Tab | Field | Where the text is | Ready? |

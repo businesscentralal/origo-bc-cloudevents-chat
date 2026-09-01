@@ -19,8 +19,8 @@ not, that is a gap.
 | B1 | 🔴 Blocker | Build | CI/CD has failed on **every** run since 2026-08-29, including `main`. The Build step is what fails |
 | B2 | 🔴 Blocker | Pipeline | `deliverToAppSource.productId` is empty. DocEx has one |
 | F1 | ✅ Fixed here | Help link | Was a 404. Now points at the Cloud Events Core help, which returns 200. Interim |
-| F2 | ✅ Fixed here | Object naming | `CE Chat Role Prov.` had no `ori` suffix. Renamed to `CE Chat Role Prov. ori` |
-| F3 | ✅ Fixed here | Listing texts | The three submission documents named the app "Cloud Events LLM" and described three providers. There are six |
+| — | ℹ️ Note | Object naming | Every object carries the `ori` suffix except `CE Chat Role Prov.`, an enum extension. The house rule does not apply the suffix to extension objects, so this is correct as it stands |
+| F2 | ✅ Fixed here | Listing texts | The three submission documents named the app "Cloud Events LLM" and described three providers. There are six |
 | W1 | 🟠 Upload | Marketplace media | No screenshots. Partner Center needs 3–5 at exactly 1280×720 |
 | W2 | 🟡 Medium | Exposure policy | `resourceExposurePolicy` is fully open here and fully closed in DocEx |
 | W3 | 🟡 Medium | Dependency | Core 28.2.2.0 must be live on AppSource before this can be validated |
@@ -96,17 +96,7 @@ to the working Core index instead of a missing page.
 **Permanent fix:** add a `Help/` folder and copy `PublishHelpToDocsCollection.yaml` from
 DocEx, which publishes to the blob on every push to `main` that touches `Help/**`.
 
-### F2 — The `ori` suffix
-
-One object had no suffix: `enumextension 10035488 "CE Chat Role Prov."`. Renamed to
-`"CE Chat Role Prov. ori"`. Everything else in `app/src` already carried it, and no other
-file referenced the old name.
-
-Note for whoever regenerates translations: renaming an object changes its XLIFF unit ids,
-so `app/Translations/Origo Cloud Events Chat.is-IS.xlf` should be regenerated. The
-`Comment = 'is-IS=…'` strings in the source are the authority, so nothing is lost.
-
-### F3 — The submission texts
+### F2 — The submission texts
 
 The three documents now in `app/docs/appsource-submission/` described a different product:
 
@@ -178,8 +168,7 @@ validated.
 
 - **Anything that requires a build.** See B1 — CI has not produced a green build since
   2026-08-29, and the app was not compiled locally either (no Core 28.2.2.0 symbols on the
-  machine these documents were written on). The rename in F2 is therefore unverified by a
-  compiler; it is a single object name with no other references, but CI is the authority.
+  machine these documents were written on). CI is the authority.
 - **Runtime behaviour.** No sandbox, so none of the scenarios have been executed. They were
   written from the AL source and from the previous scenario document, with the provider
   list, permission set names and page names checked against the code.

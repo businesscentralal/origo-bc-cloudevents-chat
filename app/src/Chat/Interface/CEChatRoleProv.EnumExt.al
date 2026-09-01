@@ -6,7 +6,7 @@ using Origo.APP.CloudEvents;
 /// Registers LLM provider variants on the Core "MCP Chat Role Prov. ori" enum.
 /// Each value uses a different authentication scheme for the HTTP endpoint.
 /// </summary>
-enumextension 10035488 "CE Chat Role Prov. ori" extends "MCP Chat Role Prov. ori"
+enumextension 10035488 "CE Chat Role Prov." extends "MCP Chat Role Prov. ori"
 {
     value(10035485; "OpenAI")
     {

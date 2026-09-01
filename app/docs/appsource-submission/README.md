@@ -21,7 +21,7 @@ Origo Cloud Events Chat
 ```
 
 **Search results summary** (max 100 — this is the line that shows in marketplace search
-results; 84 characters)
+results; 85 characters)
 
 ```
 Ask Business Central questions in plain language and get answers from your live data.

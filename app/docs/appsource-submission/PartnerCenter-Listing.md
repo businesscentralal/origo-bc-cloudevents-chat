@@ -41,7 +41,7 @@ Central offer listing documentation (2025-07-28 revision).
 Ask Business Central questions in plain language and get answers from your live data.
 ```
 
-84 characters.
+85 characters.
 
 ### Description (≤ 5 000 characters; keep under 3 000)
 

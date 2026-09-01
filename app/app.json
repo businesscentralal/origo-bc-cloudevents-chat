@@ -4,13 +4,12 @@
   "publisher": "Origo",
   "version": "28.0.0.0",
   "brief": "AI Chat providers for Cloud Events",
-  "description": "Adds OpenAI, Azure OpenAI, custom LLM and Anthropic Claude as MCP Chat providers for Business Central Cloud Events. Enables AI-powered chat with tool execution against live BC data using the in-process MCP Tool Server.",
+  "description": "Adds OpenAI, Azure OpenAI, Anthropic, xAI (Grok), Google (Gemini) and any OpenAI-compatible self-hosted model as MCP Chat providers for Business Central Cloud Events. Enables AI-powered chat with tool execution against live BC data using the in-process MCP Tool Server.",
   "url": "https://www.origo.is/",
-  "help": "https://origopublic.blob.core.windows.net/help/Origo Cloud Events Chat/bc28/en-US/index.html",
+  "help": "https://origopublic.blob.core.windows.net/help/Cloud Events/bc28/en-US/index.html",
   "privacyStatement": "https://www.origo.is/um-origo/stefnur/personuverndarstefna",
   "EULA": "https://www.origo.is/skilmalar-og-oryggismal",
   "applicationInsightsConnectionString": "InstrumentationKey=9f926e90-2bcf-4fb6-b67e-a7aa488593da;IngestionEndpoint=https://northeurope-2.in.applicationinsights.azure.com/;LiveEndpoint=https://northeurope.livediagnostics.monitor.azure.com/;ApplicationId=0e406897-d600-4c1c-9065-69bee2eb32ee",
-  "contextSensitiveHelpUrl": "https://origopublic.blob.core.windows.net/help/Origo Cloud Events Chat/bc28/{0}/",
   "supportedLocales": [
     "en-US",
     "is-IS"
